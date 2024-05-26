@@ -1,0 +1,6 @@
+<resources>
+
+    <style name="Theme.RiskWatchApp" parent="Theme.AppCompat.Light.NoActionBar">
+    </style>
+
+</resources>

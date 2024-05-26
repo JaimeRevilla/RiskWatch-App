@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">RiskWatchApp</string>
+    <string name="DeniedPermission">Denied Permission</string>
+    <string name="SDKErrorPolicy">SDK Denied</string>
+    <string name="ConnectedToHTs">Connected to Health Tracking Service.</string>
+    <string name="ConnectionError">Could not connect to Health Tracking Service. Check error log.</string>
+    <string name="HealthPlatformVersionIsOutdated">"Health Platform version is outdated or not installed.</string>
+    <string name="NoHrSupport">Heart Rate no supported on this device.</string>
+
+</resources>
