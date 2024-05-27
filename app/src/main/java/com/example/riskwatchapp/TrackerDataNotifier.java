@@ -44,7 +44,9 @@ public class TrackerDataNotifier {
     public void notifyHeartRateTrackerObservers(HRVData hrData) {
         observers.forEach(observer -> observer.onHeartRateTrackerDataChanged(hrData));
     }
-
+    public void notifyAccTrackerObservers(List<AccData> accData) {
+        observers.forEach(observer -> observer.onAccTrackerDataChanged(accData));
+    }
 
     public void notifyError(int errorResourceId) {
         observers.forEach(observer -> observer.onError(errorResourceId));

@@ -6,5 +6,7 @@
     <string name="ConnectionError">Could not connect to Health Tracking Service. Check error log.</string>
     <string name="HealthPlatformVersionIsOutdated">"Health Platform version is outdated or not installed.</string>
     <string name="NoHrSupport">Heart Rate no supported on this device.</string>
+    <string name="NoPermission">Permissions Check Failed.</string>
+    <string name="SdkPolicyError">SDK Policy denied.</string>
 
 </resources>

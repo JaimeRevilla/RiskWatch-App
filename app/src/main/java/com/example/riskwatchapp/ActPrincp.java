@@ -95,16 +95,9 @@ public class ActPrincp extends FragmentActivity {
     private ConnectionManag connectionManager;
     private HRVListener heartRateListener = null;
 
+    private AccListener accListener = null;
 
-   // private AccListener accListener = null;
-    //private SpO2Listener spO2Listener = null;
-    //  private TemperatureListener tempListener = null;
-
-    //private int previousStatus = SpO2Status.INITIAL_STATUS;
     public String hr_value = "";
-    public String spo2_value = "";
-    public String temp_value ="";
-    public String temp_value_ambient ="";
 
     public String hribi_value = "";
     public int acx=0;
@@ -123,23 +116,10 @@ public class ActPrincp extends FragmentActivity {
     SimpleDateFormat sdf_filename;
 
     File path;
-    File file_sleep;
+    File file_stress;
     File logs;
     String fileString_log="";
     private HealthTrackingService healthTrackingService = null;
-
-
-    private Button butStart;
-
-    private LocationManager locationManager;
-    private SensorManager sensorManager;
-    private Sensor pressureSensor;
-    private boolean altitudeDisplayed = false;
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private static final int STORAGE_PERMISSION_REQUEST_CODE = 2;
-
-    private Double latitude = null;
-    private Double longitude = null;
 
 
     @Override
@@ -164,15 +144,13 @@ public class ActPrincp extends FragmentActivity {
 
 
 
-        // butStart = binding.butStart;
-
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), "android.permissions.BODY_SENSORS") == PackageManager.PERMISSION_DENIED)
             requestPermissions(new String[]{Manifest.permission.BODY_SENSORS}, 0);
 
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), "android.permissions.ACTIVITY_RECOGNITION") == PackageManager.PERMISSION_DENIED)
             requestPermissions(new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, 0);
 
-        //https://developer.android.com/reference/android/os/PowerManager
+
     }
 
 
@@ -183,10 +161,6 @@ public class ActPrincp extends FragmentActivity {
     public void startSleep(){
         createConnectionManager();
         final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-
-//android:keepScreenOn="true"
-        // Acquire wake lock
-
 
     }
 
@@ -263,7 +237,7 @@ public class ActPrincp extends FragmentActivity {
         if (!path.exists()){
             path.mkdirs();
         }
-        file_sleep = new File(path, "data_stress_"+file_name+".csv");
+        file_stress = new File(path, "data_stress_"+file_name+".csv");
         logs = new File(path, "LOGS_"+file_name+".csv");
 
     }
@@ -319,12 +293,42 @@ public class ActPrincp extends FragmentActivity {
 
 
                 fileString = fileString+ timestamp+ ", " + hr_value + ", " + hribi_value + ", " + 0+ ", " + 0 + ", " +0+ ", " +0+ ", " +0+ ", " +0+ ", " + "H"+"\n";
-                FileWriters(fileString,file_sleep);
+                FileWriters(fileString,file_stress);
                 fileString = "";
                 Log.i(APP_TAG, "FILE WRITTEN: ");
                 Log.i(APP_TAG, "HR: "+hrData.hr+", "+ hrData.ibi);
 
             }
+
+        }
+
+
+        @Override
+        public void onAccTrackerDataChanged(List<AccData> accList) {
+            //It's a raw data value. You can convert it to m/s2 with:
+            // 9.81 / (16383.75 / 4.0)) * value
+
+            //Receives a list of AccData objects
+            //  Log.i(APP_TAG, "MAIN-ACCEL: LIST SIZE: "+accList.size());
+
+            data_counter=data_counter+1;
+
+            for (int i = 0; i < accList.size(); i += 1) {
+                acx = accList.get(i).sumX;
+                acy = accList.get(i).sumY;
+                acz = accList.get(i).sumZ;
+
+                String timestamp = accList.get(i).timeStamp;
+                fileString = fileString+ timestamp+ ", " + 0 + ", " + 0 + ", " + 0+ ", " +0+ ", " + 0 + ", " + acx+ ", "+ acy+ ", "+ acz+ ", "+"A"+"\n";
+            }
+            //Se llama 1 vez cada 12 segundos: 12*5 = 60 segundos
+            // 5 datos por segundo: 60*5 = 300 datos por minuto
+            //    if (data_counter >= 5){ //escribir en fichero cada 1 minuto
+            //data_counter = 0;
+
+            //  }
+
+
 
         }
 
@@ -338,8 +342,7 @@ public class ActPrincp extends FragmentActivity {
     private final ConnectionObsv connectionObserver = new ConnectionObsv() {
         @Override
         public void onConnectionResult(int stringResourceId) {
-/*            runOnUiThread(() -> Toast.makeText(getApplicationContext(), getString(stringResourceId)
-                    , Toast.LENGTH_LONG).show());*/
+
 
             if (stringResourceId != R.string.ConnectedToHTs) {
                 finish();
@@ -347,18 +350,12 @@ public class ActPrincp extends FragmentActivity {
 
             TrackerDataNotifier.getInstance().addObserver(trackerDataObserver);
 
-            //spO2Listener = new SpO2Listener();
             heartRateListener = new HRVListener();
-            //   tempListener = new TemperatureListener();
-            //accListener = new AccListener();
+            accListener = new AccListener();
 
-
-            //connectionManager.initSpO2(spO2Listener);
             connectionManager.initHeartRate(heartRateListener);
-            //connectionManager.initAcc(accListener);
-            //  connectionManager.initTemperature(tempListener);
+            connectionManager.initAcc(accListener);
             startTimer();
-
 
             measure();
 
@@ -516,15 +513,10 @@ public class ActPrincp extends FragmentActivity {
         if (heartRateListener != null) {
             heartRateListener.stopTracker();
         }
-       // if (accListener != null) {
-         //   accListener.stopTracker();
-        //}
-        //if (spO2Listener != null) {
-         //   spO2Listener.stopTracker();
-        //}
-        //    if (tempListener != null) {
-        //      tempListener.stopTracker();
-        // }
+        if (accListener != null) {
+            accListener.stopTracker();
+        }
+
         TrackerDataNotifier.getInstance().removeObserver(trackerDataObserver);
         if (connectionManager != null) {
             connectionManager.disconnect();
@@ -537,20 +529,8 @@ public class ActPrincp extends FragmentActivity {
         heartRateListener.startTracker();
         Log.i(APP_TAG, "HR tracker ON");
 
-
-       // accListener.startTracker();
-       // Log.i(APP_TAG, "ACC tracker ON");
-
-
-        //tempListener.startTracker();
-        //   Log.i(APP_TAG, "temp tracker ON");
-
-
-       // spO2Listener.startTracker();
-       // Log.i(APP_TAG, "SPO2 tracker ON");
-
-
-
+        accListener.startTracker();
+        Log.i(APP_TAG, "ACC tracker ON");
 
     }
     static final float ALPHA = 0.25f; // if ALPHA = 1 OR 0, no filter applies.
