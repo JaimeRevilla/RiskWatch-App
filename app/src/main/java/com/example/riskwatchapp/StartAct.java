@@ -180,7 +180,7 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
             }
             String fileName = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + "_heightData.csv";
             File file = new File(filePath, fileName);
-            try (FileWriter writer = new FileWriter(file, true)) {
+            try (FileWriter writer = new FileWriter(file, false)) { // false para sobrescribir
                 writer.append(String.format(Locale.getDefault(), "%.2f\n", height));
             } catch (IOException e) {
                 e.printStackTrace();
