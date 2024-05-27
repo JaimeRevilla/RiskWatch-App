@@ -156,7 +156,7 @@ public class FirebaseActivity extends AppCompatActivity {
     }
     private void uploadFilesToFirebase() {
         // Obtén las referencias de los directorios
-        File altitudeDir = new File(Environment.getExternalStorageDirectory() + "/Android/data/com.example.riskwatchapp/files/altitudeData");
+        File altitudeDir = new File(Environment.getExternalStorageDirectory() + "/Android/data/com.example.riskwatchapp/files/heightData");
         File locationDir = new File(Environment.getExternalStorageDirectory() + "/Android/data/com.example.riskwatchapp/files/locationData");
 
         // Encuentra el archivo más reciente en cada directorio

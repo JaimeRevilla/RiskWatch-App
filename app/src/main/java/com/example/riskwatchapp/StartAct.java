@@ -64,6 +64,10 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 2;
 
+    private static final double SEA_LEVEL_PRESSURE = 1013.25; // hPa
+    private static final double TEMPERATURE_CELSIUS = 20.0; // Temperatura fija en Celsius
+    private static final double TEMPERATURE_KELVIN = TEMPERATURE_CELSIUS + 273.15; // Convertir a Kelvin
+
     private Double latitude = null;
     private Double longitude = null;
 
@@ -140,7 +144,7 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
             if (!filePath.exists()) {
                 filePath.mkdirs();
             }
-            String fileName = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + "current_locationData.csv";
+            String fileName = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + "_locationData.csv";
             File file = new File(filePath, fileName);
             if (file.exists()) {
                 try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -167,40 +171,46 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
         }
     }
 
-    private void saveAltitudeDataToCSV(float altitude, float depth) {
+    private void saveHeightDataToCSV(double height) {
         File externalFilesDir = getExternalFilesDir(null);
         if (externalFilesDir != null) {
-            File filePath = new File(externalFilesDir, "altitudeData");
+            File filePath = new File(externalFilesDir, "heightData");
             if (!filePath.exists()) {
                 filePath.mkdirs();
             }
-            String fileName = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + "_altitudeData.csv";
+            String fileName = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + "_heightData.csv";
             File file = new File(filePath, fileName);
             try (FileWriter writer = new FileWriter(file, true)) {
-                writer.append(String.valueOf(altitude)).append(",").append(String.valueOf(depth)).append("\n");
+                writer.append(String.format(Locale.getDefault(), "%.2f\n", height));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
-            // Maneja el caso en que el directorio externo no está disponible
             System.err.println("Error: External storage not available");
         }
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // No es necesario implementar este método para este ejemplo
+        // No es necesario implementar este método para este proyecto
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_PRESSURE && !altitudeDisplayed) {
-            float pressure = event.values[0];
-            float altitude = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, pressure);
-            float depth = altitude; // Puedes cambiar esto si tienes una fórmula diferente para la profundidad
-            saveAltitudeDataToCSV(altitude, depth);
-            altitudeDisplayed = true;
+        if (!altitudeDisplayed) {
+            if (event.sensor.getType() == Sensor.TYPE_PRESSURE) {
+                float pressure = event.values[0];
+                double height = calculateHeight(pressure, TEMPERATURE_KELVIN);
+
+                altitudeDisplayed = true;  // Mostrar y guardar la información de la altura solo una vez
+
+                saveHeightDataToCSV(height);
+            }
         }
+    }
+
+    private double calculateHeight(float pressure, double temperature) {
+        return Math.abs((1 - Math.pow(pressure / SEA_LEVEL_PRESSURE, 0.190284)) * (temperature / 0.0065));
     }
 
     @Override
