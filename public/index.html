@@ -56,6 +56,7 @@
 
                 // Ordenar los archivos por nombre (asumiendo que los nombres de archivo contienen fechas y se ordenan lexicográficamente)
                 csvFiles.sort((a, b) => b.name.localeCompare(a.name));
+                console.log('Archivo CSV más reciente:', csvFiles[0].name);
                 return csvFiles[0].getDownloadURL().then(function(url) {
                     return fetch(url).then(response => response.text());
                 });
@@ -63,21 +64,24 @@
         }
 
         function processLocationData(data) {
-            const results = Papa.parse(data, {
-                header: false,
-                dynamicTyping: true,
-                complete: function(results) {
-                    const location = results.data[0];
-                    const lat = location[0];
-                    const lon = location[1];
+            console.log('Datos CSV:', data);
+            const regex = /(\d{6}),/g; // Busca una coma precedida por seis dígitos
+            const locations = data.split(regex).filter(part => part.trim() !== "");
+            console.log('Partes procesadas:', locations);
 
-                    if (lat && lon) {
-                        const marker = L.marker([lat, lon]).addTo(map);
-                        marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}`);
-                        map.setView([lat, lon], 10); // Zoom al primer marcador
-                    }
+            if (locations.length >= 2) {
+                const lat = parseFloat(locations[0]);
+                const lon = parseFloat(locations[1]);
+                console.log('Latitud:', lat, 'Longitud:', lon);
+
+                if (lat && lon) {
+                    const marker = L.marker([lat, lon]).addTo(map);
+                    marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}`);
+                    map.setView([lat, lon], 10); // Zoom al primer marcador
                 }
-            });
+            } else {
+                console.error('Formato de datos incorrecto:', locations);
+            }
         }
 
         // Leer y procesar el archivo de ubicación más reciente
