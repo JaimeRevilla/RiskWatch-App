@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Mapa de Ubicaciones</title>
+    <title>RiskWatchApp Web</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -23,6 +23,14 @@
             text-align: center;
             padding: 20px;
             background-color: #4CAF50;
+            color: white;
+            width: 100%;
+        }
+
+        #app-title {
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
             color: white;
             width: 100%;
         }
@@ -50,12 +58,14 @@
             background-color: #4CAF50;
             color: white;
             width: 100%;
-            position: fixed;
-            bottom: 0;
         }
     </style>
 </head>
 <body>
+    <div id="app-title">
+        <h2>RiskWatchApp Web</h2>
+    </div>
+    
     <header>
         <h1>Mapa de Ubicaciones</h1>
         <p>Visualización de datos de ubicación y altura</p>
@@ -66,7 +76,7 @@
     </div>
 
     <footer>
-        <p>Desarrollado por [Tu Nombre]</p>
+        <p>Desarrollado por Jaime Revilla</p>
     </footer>
 
     <script>
@@ -160,7 +170,7 @@
                 if (location && !isNaN(height)) {
                     const { lat, lon } = location;
                     const marker = L.marker([lat, lon]).addTo(map);
-                    marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}, <b>Altura:</b> ${height} metros/nvl_mar`);
+                    marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}, <b>Altura:</b> ${height} metros`);
                     map.setView([lat, lon], 10); // Zoom al primer marcador
                 }
             } catch (error) {
