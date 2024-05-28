@@ -11,13 +11,8 @@
 </head>
 <body>
     <header>
-        <div id="app-title">
-            <h2>RiskWatchApp Web</h2>
-        </div>
-        <div id="header-content">
-            <h1>Mapa de Ubicaciones</h1>
-            <p>Visualización de datos de ubicación y altura</p>
-        </div>
+        <h1>Mapa de Ubicaciones</h1>
+        <p>Visualización de datos de ubicación y altura</p>
     </header>
 
     <div id="map-container">
@@ -109,11 +104,11 @@
         async function loadDataAndDisplay() {
             try {
                 // Obtener datos de ubicación
-                const locationData = await fetchLatestCSV('Datos_An', '_locationData.csv');
+                const locationData = await fetchLatestCSV('PruebasLoc', '_locationData.csv');
                 const location = processLocationData(locationData);
 
                 // Obtener datos de altura
-                const heightData = await fetchLatestCSV('Datos_An', '_heightData.csv');
+                const heightData = await fetchLatestCSV('PruebasLoc', '_heightData.csv');
                 const height = processHeightData(heightData);
 
                 if (location && !isNaN(height)) {

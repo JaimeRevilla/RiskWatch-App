@@ -10,24 +10,12 @@ body, html {
 }
 
 header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    text-align: center;
     padding: 20px;
     background-color: #4CAF50;
     color: white;
     width: 100%;
     box-sizing: border-box;
-}
-
-#app-title {
-    flex: 1;
-    text-align: right;
-}
-
-#header-content {
-    flex: 3;
-    text-align: center;
 }
 
 #map-container {
@@ -53,6 +41,5 @@ footer {
     background-color: #4CAF50;
     color: white;
     width: 100%;
-    position: fixed;
-    bottom: 0;
+    box-sizing: border-box;
 }
