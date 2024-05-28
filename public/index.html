@@ -11,16 +11,63 @@
         body, html {
             height: 100%;
             margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f2f5;
         }
-        #map {
-            height: 90%;
+
+        header {
+            text-align: center;
+            padding: 20px;
+            background-color: #4CAF50;
+            color: white;
             width: 100%;
+        }
+
+        #map-container {
+            flex: 1;
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            width: 100%;
+            position: fixed;
+            bottom: 0;
         }
     </style>
 </head>
 <body>
-    <h1>Mapa de Ubicaciones</h1>
-    <div id="map"></div>
+    <header>
+        <h1>Mapa de Ubicaciones</h1>
+        <p>Visualización de datos de ubicación y altura</p>
+    </header>
+
+    <div id="map-container">
+        <div id="map"></div>
+    </div>
+
+    <footer>
+        <p>Desarrollado por [Tu Nombre]</p>
+    </footer>
 
     <script>
         // Configura Firebase
@@ -113,7 +160,7 @@
                 if (location && !isNaN(height)) {
                     const { lat, lon } = location;
                     const marker = L.marker([lat, lon]).addTo(map);
-                    marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}, <b>Altura:</b> ${height} metros`);
+                    marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}, <b>Altura:</b> ${height} metros/nvl_mar`);
                     map.setView([lat, lon], 10); // Zoom al primer marcador
                 }
             } catch (error) {
