@@ -46,25 +46,26 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Leer y procesar los archivos CSV desde Firebase Storage
-        function fetchLatestCSV() {
-            return storageRef.child('PruebasLoc').listAll().then(function(result) {
-                const csvFiles = result.items.filter(item => item.name.includes('_locationData.csv'));
+        // Función para obtener la URL de descarga del archivo CSV más reciente en un directorio específico
+        function fetchLatestCSV(directory, fileIdentifier) {
+            return storageRef.child(directory).listAll().then(function(result) {
+                const csvFiles = result.items.filter(item => item.name.includes(fileIdentifier));
                 if (csvFiles.length === 0) {
-                    throw new Error('No se encontraron archivos CSV de ubicación.');
+                    throw new Error(`No se encontraron archivos CSV con el identificador: ${fileIdentifier}`);
                 }
 
                 // Ordenar los archivos por nombre (asumiendo que los nombres de archivo contienen fechas y se ordenan lexicográficamente)
                 csvFiles.sort((a, b) => b.name.localeCompare(a.name));
-                console.log('Archivo CSV más reciente:', csvFiles[0].name);
+                console.log(`Archivo CSV más reciente para ${fileIdentifier}:`, csvFiles[0].name);
                 return csvFiles[0].getDownloadURL().then(function(url) {
                     return fetch(url).then(response => response.text());
                 });
             });
         }
 
+        // Función para procesar los datos de ubicación
         function processLocationData(data) {
-            console.log('Datos CSV:', data);
+            console.log('Datos de ubicación CSV:', data);
 
             // Partir los datos basados en la coma
             const parts = data.split(',');
@@ -75,23 +76,53 @@
                 console.log('Latitud:', lat, 'Longitud:', lon);
 
                 if (!isNaN(lat) && !isNaN(lon)) {
-                    const marker = L.marker([lat, lon]).addTo(map);
-                    marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}`);
-                    map.setView([lat, lon], 10); // Zoom al primer marcador
+                    return { lat, lon };
                 } else {
                     console.error('Error en la conversión de coordenadas:', parts);
+                    return null;
                 }
             } else {
                 console.error('Formato de datos incorrecto:', data);
+                return null;
             }
         }
 
-        // Leer y procesar el archivo de ubicación más reciente
-        fetchLatestCSV().then(locationData => {
-            processLocationData(locationData);
-        }).catch(function(error) {
-            console.error('Error al descargar el archivo de ubicación:', error);
-        });
+        // Función para procesar los datos de altura
+        function processHeightData(data) {
+            console.log('Datos de altura CSV:', data);
+            const height = parseFloat(data.trim());
+            if (!isNaN(height)) {
+                return height;
+            } else {
+                console.error('Error en la conversión de la altura:', data);
+                return null;
+            }
+        }
+
+        // Función principal para cargar y mostrar los datos en el mapa
+        async function loadDataAndDisplay() {
+            try {
+                // Obtener datos de ubicación
+                const locationData = await fetchLatestCSV('PruebasLoc', '_locationData.csv');
+                const location = processLocationData(locationData);
+
+                // Obtener datos de altura
+                const heightData = await fetchLatestCSV('PruebasLoc', '_heightData.csv');
+                const height = processHeightData(heightData);
+
+                if (location && !isNaN(height)) {
+                    const { lat, lon } = location;
+                    const marker = L.marker([lat, lon]).addTo(map);
+                    marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}, <b>Altura:</b> ${height} metros`);
+                    map.setView([lat, lon], 10); // Zoom al primer marcador
+                }
+            } catch (error) {
+                console.error('Error al cargar y mostrar los datos:', error);
+            }
+        }
+
+        // Ejecutar la función principal
+        loadDataAndDisplay();
 
     </script>
 </body>
