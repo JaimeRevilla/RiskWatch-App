@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mapa de Ubicaciones</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+    <style>
+        #map { height: 500px; }
+    </style>
+</head>
+<body>
+    <h1>Mapa de Ubicaciones</h1>
+    <div id="map"></div>
+
+    <script>
+        // Configura Firebase
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_PROYECTO.firebaseapp.com",
+            databaseURL: "https://TU_PROYECTO.firebaseio.com",
+            projectId: "TU_PROYECTO",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "TU_SENDER_ID",
+            appId: "TU_APP_ID"
+        };
+
+        // Inicializa Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Inicializa el mapa
+        const map = L.map('map').setView([0, 0], 2); // Coordenadas iniciales y zoom
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Obtén los datos de la base de datos
+        const locationRef = database.ref('ubicaciones/');
+        locationRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            for (const key in data) {
+                const location = data[key];
+                const marker = L.marker([location.latitud, location.longitud]).addTo(map);
+                marker.bindPopup(`<b>Altura:</b> ${location.altura}`);
+            }
+        });
+    </script>
+</body>
+</html>
