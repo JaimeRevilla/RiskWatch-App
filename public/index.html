@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RiskWatchApp Web</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mapa de Ubicaciones</h1>
+            <p>Visualización de datos de ubicación y altura</p>
+        </header>
+
+        <div id="map-container">
+            <div id="map"></div>
+        </div>
+
+        <footer>
+            <p>Desarrollado por Jaime Revilla</p>
+        </footer>
+    </div>
+
+    <script>
+        // Configura Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIJorV_JDC03nbKYBR7wkeKjBJLcHcxo",
+            authDomain: "riskwatchapp-5ec8b.firebaseapp.com",
+            databaseURL: "https://riskwatchapp-5ec8b-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "riskwatchapp-5ec8b",
+            storageBucket: "riskwatchapp-5ec8b.appspot.com",
+            messagingSenderId: "162678165225",
+            appId: "1:162678165225:web:3c28dd0d756ade7742a78"
+        };
+
+        // Inicializa Firebase
+        firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+        const storageRef = storage.ref();
+
+        // Inicializa el mapa
+        const map = L.map('map').setView([0, 0], 2); // Coordenadas iniciales y zoom
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Función para obtener la URL de descarga del archivo CSV más reciente en un directorio específico
+        function fetchLatestCSV(directory, fileIdentifier) {
+            return storageRef.child(directory).listAll().then(function(result) {
+                const csvFiles = result.items.filter(item => item.name.includes(fileIdentifier));
+                if (csvFiles.length === 0) {
+                    throw new Error(`No se encontraron archivos CSV con el identificador: ${fileIdentifier}`);
+                }
+
+                // Ordenar los archivos por nombre (asumiendo que los nombres de archivo contienen fechas y se ordenan lexicográficamente)
+                csvFiles.sort((a, b) => b.name.localeCompare(a.name));
+                console.log(`Archivo CSV más reciente para ${fileIdentifier}:`, csvFiles[0].name);
+                return csvFiles[0].getDownloadURL().then(function(url) {
+                    return fetch(url).then(response => response.text());
+                });
+            });
+        }
+
+        // Función para procesar los datos de ubicación
+        function processLocationData(data) {
+            console.log('Datos de ubicación CSV:', data);
+
+            // Partir los datos basados en la coma
+            const parts = data.split(',');
+
+            if (parts.length === 4) {
+                const lat = parseFloat(parts[0] + '.' + parts[1]);
+                const lon = parseFloat(parts[2] + '.' + parts[3]);
+                console.log('Latitud:', lat, 'Longitud:', lon);
+
+                if (!isNaN(lat) && !isNaN(lon)) {
+                    return { lat, lon };
+                } else {
+                    console.error('Error en la conversión de coordenadas:', parts);
+                    return null;
+                }
+            } else {
+                console.error('Formato de datos incorrecto:', data);
+                return null;
+            }
+        }
+
+        // Función para procesar los datos de altura
+        function processHeightData(data) {
+            console.log('Datos de altura CSV:', data);
+            const height = parseFloat(data.trim());
+            if (!isNaN(height)) {
+                return height;
+            } else {
+                console.error('Error en la conversión de la altura:', data);
+                return null;
+            }
+        }
+
+        // Función principal para cargar y mostrar los datos en el mapa
+        async function loadDataAndDisplay() {
+            try {
+                // Obtener datos de ubicación
+                const locationData = await fetchLatestCSV('PruebasLoc', '_locationData.csv');
+                const location = processLocationData(locationData);
+
+                // Obtener datos de altura
+                const heightData = await fetchLatestCSV('PruebasLoc', '_heightData.csv');
+                const height = processHeightData(heightData);
+
+                if (location && !isNaN(height)) {
+                    const { lat, lon } = location;
+                    const marker = L.marker([lat, lon]).addTo(map);
+                    marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}, <b>Altura:</b> ${height} metros`);
+                    map.setView([lat, lon], 10); // Zoom al primer marcador
+                }
+            } catch (error) {
+                console.error('Error al cargar y mostrar los datos:', error);
+            }
+        }
+
+        // Ejecutar la función principal
+        loadDataAndDisplay();
+
+    </script>
+</body>
+</html>
