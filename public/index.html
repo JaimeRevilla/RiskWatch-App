@@ -6,6 +6,8 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         #map { height: 500px; }
     </style>
@@ -28,7 +30,8 @@
 
         // Inicializa Firebase
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const storage = firebase.storage();
+        const storageRef = storage.ref();
 
         // Inicializa el mapa
         const map = L.map('map').setView([0, 0], 2); // Coordenadas iniciales y zoom
@@ -37,16 +40,46 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Obtén los datos de la base de datos
-        const locationRef = database.ref('ubicaciones/');
-        locationRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            for (const key in data) {
-                const location = data[key];
-                const marker = L.marker([location.latitud, location.longitud]).addTo(map);
-                marker.bindPopup(`<b>Altura:</b> ${location.altura}`);
-            }
+        // Leer y procesar los archivos CSV desde Firebase Storage
+        function fetchCSV(filePath) {
+            return storageRef.child(filePath).getDownloadURL().then(function(url) {
+                return fetch(url).then(response => response.text());
+            });
+        }
+
+        function processLocationData(data, height) {
+            const results = Papa.parse(data, {
+                header: false,
+                dynamicTyping: true,
+                complete: function(results) {
+                    const location = results.data[0];
+                    const lat = location[0];
+                    const lon = location[1];
+
+                    if (lat && lon) {
+                        const marker = L.marker([lat, lon]).addTo(map);
+                        marker.bindPopup(`<b>Altura:</b> ${height}`);
+                        map.setView([lat, lon], 10); // Zoom al primer marcador
+                    }
+                }
+            });
+        }
+
+        // Leer y procesar los datos de altura
+        fetchCSV('PruebasLoc/20240527_heightData.csv').then(heightData => {
+            const height = heightData.trim(); // Eliminar espacios en blanco
+
+            // Leer y procesar los datos de ubicación
+            fetchCSV('PruebasLoc/20240527_locationData.csv').then(locationData => {
+                processLocationData(locationData, height);
+            }).catch(function(error) {
+                console.error('Error al descargar el archivo de ubicación:', error);
+            });
+
+        }).catch(function(error) {
+            console.error('Error al descargar el archivo de altura:', error);
         });
+
     </script>
 </body>
 </html>
