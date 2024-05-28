@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="white">#FFFFFF</color>
+
+    <!-- Onda más externa, el tono más claro -->
+    <color name="onda_externa">#CCF0F4</color> <!-- Un azul cielo muy claro -->
+
+    <!-- Onda media, un tono intermedio -->
+    <color name="onda_media">#A7D8E4</color> <!-- Un azul-verde claro -->
+
+    <!-- Onda más interna, un tono más oscuro para contrastar con el botón -->
+    <color name="onda_interna">#7FBCC0</color> <!-- Un verde azulado más saturado -->
+
+    <!-- Colores ya definidos -->
+    <color name="fondo">#B7E8EE</color>
+    <color name="fondo_boton">#1565C0</color> <!-- Azul intenso para el botón central -->
+    <color name="texto_boton">#FFFFFF</color> <!-- Blanco para el texto del botón -->
+    <color name="fondonegro">#000000</color> <!-- Por ejemplo, negro para el fondo general de la pantalla -->
+
+</resources>

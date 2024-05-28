@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "162678165225",
+    "project_id": "riskwatchapp-5ec8b",
+    "storage_bucket": "riskwatchapp-5ec8b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:162678165225:android:47d18a5a7df78b0d742a78",
+        "android_client_info": {
+          "package_name": "com.example.riskwatchapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "162678165225-01c8tco82agei3h4fj7blq6djcks8ekj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbTya759o7M97sKESOo2fcE7HeYScRi3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "162678165225-01c8tco82agei3h4fj7blq6djcks8ekj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:162678165225:android:08c184e6c8e46867742a78",
+        "android_client_info": {
+          "package_name": "com.samsung.health.multisensortracking"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "162678165225-01c8tco82agei3h4fj7blq6djcks8ekj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbTya759o7M97sKESOo2fcE7HeYScRi3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "162678165225-01c8tco82agei3h4fj7blq6djcks8ekj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

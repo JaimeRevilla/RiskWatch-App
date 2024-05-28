@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Círculo exterior, el tono más claro -->
+    <item android:gravity="center">
+        <shape android:shape="oval">
+            <size android:width="48dp" android:height="48dp"/>
+            <solid android:color="#CCF0F4"/>
+        </shape>
+    </item>
+    <!-- Círculo medio, un tono intermedio -->
+    <item android:gravity="center">
+        <shape android:shape="oval">
+            <size android:width="40dp" android:height="40dp"/>
+            <solid android:color="#A7D8E4"/>
+        </shape>
+    </item>
+    <!-- Círculo interior, el tono más oscuro -->
+    <item android:gravity="center">
+        <shape android:shape="oval">
+            <size android:width="32dp" android:height="32dp"/>
+            <solid android:color="#7FBCC0"/>
+        </shape>
+    </item>
+</layer-list>
