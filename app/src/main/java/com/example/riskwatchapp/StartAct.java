@@ -160,7 +160,7 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
             // Solo escribe si los valores no son nulos
             if (latitude != null && longitude != null) {
                 try (FileWriter writer = new FileWriter(file, false)) { // false para no agregar, sino sobrescribir
-                    writer.append(String.valueOf(latitude)).append(",").append(String.valueOf(longitude)).append("\n");
+                    writer.append(String.format(Locale.getDefault(), "%.6f,%.6f\n", latitude, longitude));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
