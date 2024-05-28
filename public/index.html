@@ -4,7 +4,6 @@
     <title>Mapa de Ubicaciones</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <!-- Usar Firebase versión 8 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
@@ -66,13 +65,12 @@
 
         function processLocationData(data) {
             console.log('Datos CSV:', data);
-            const regex = /(\d{6}),/g; // Busca una coma precedida por seis dígitos
-            const locations = data.split(regex).filter(part => part.trim() !== "");
-            console.log('Partes procesadas:', locations);
+            const regex = /(\d+,\d{6}),(\d+,\d{6})/; // Busca dos números separados por una coma y seguidos por seis dígitos
+            const match = data.match(regex);
 
-            if (locations.length >= 2) {
-                const lat = parseFloat(locations[0]);
-                const lon = parseFloat(locations[1]);
+            if (match) {
+                const lat = parseFloat(match[1].replace(',', '.'));
+                const lon = parseFloat(match[2].replace(',', '.'));
                 console.log('Latitud:', lat, 'Longitud:', lon);
 
                 if (lat && lon) {
@@ -81,7 +79,7 @@
                     map.setView([lat, lon], 10); // Zoom al primer marcador
                 }
             } else {
-                console.error('Formato de datos incorrecto:', locations);
+                console.error('Formato de datos incorrecto:', data);
             }
         }
 
