@@ -65,18 +65,21 @@
 
         function processLocationData(data) {
             console.log('Datos CSV:', data);
-            const regex = /(\d+,\d{6}),(\d+,\d{6})/; // Busca dos números separados por una coma y seguidos por seis dígitos
-            const match = data.match(regex);
 
-            if (match) {
-                const lat = parseFloat(match[1].replace(',', '.'));
-                const lon = parseFloat(match[2].replace(',', '.'));
+            // Partir los datos basados en la coma
+            const parts = data.split(',');
+
+            if (parts.length === 4) {
+                const lat = parseFloat(parts[0] + '.' + parts[1]);
+                const lon = parseFloat(parts[2] + '.' + parts[3]);
                 console.log('Latitud:', lat, 'Longitud:', lon);
 
-                if (lat && lon) {
+                if (!isNaN(lat) && !isNaN(lon)) {
                     const marker = L.marker([lat, lon]).addTo(map);
                     marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}`);
                     map.setView([lat, lon], 10); // Zoom al primer marcador
+                } else {
+                    console.error('Error en la conversión de coordenadas:', parts);
                 }
             } else {
                 console.error('Formato de datos incorrecto:', data);
