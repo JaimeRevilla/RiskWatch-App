@@ -26,8 +26,12 @@
         </div>
     </div>
 
-    <div id="alert-message" class="hidden">
-        ATENCION, APROXIMANDOSE A PARADA DE METRO TENGA PRECAUCION Y RELAJESE!!
+    <div id="alert-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <p>ATENCION, APROXIMANDOSE A PARADA DE METRO TENGA PRECAUCION Y RELAJESE!!</p>
+            <button onclick="closeModal()">Aceptar</button>
+        </div>
     </div>
 
     <footer>
@@ -220,9 +224,19 @@
             metroStations.forEach(station => {
                 const distance = map.distance([location.lat, location.lon], [station.lat, station.lon]);
                 if (distance <= 100) {
-                    document.getElementById('alert-message').classList.remove('hidden');
+                    showModal();
                 }
             });
+        }
+
+        // Función para mostrar el modal de alerta
+        function showModal() {
+            document.getElementById('alert-modal').style.display = 'block';
+        }
+
+        // Función para cerrar el modal de alerta
+        function closeModal() {
+            document.getElementById('alert-modal').style.display = 'none';
         }
 
         // Función principal para cargar y mostrar los datos en el mapa y gráfico de líneas
