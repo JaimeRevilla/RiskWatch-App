@@ -8,5 +8,6 @@
     <string name="NoHrSupport">Heart Rate no supported on this device.</string>
     <string name="NoPermission">Permissions Check Failed.</string>
     <string name="SdkPolicyError">SDK Policy denied.</string>
+    <string name="ConnectedToHs">Connected to Health Tracking Service.</string>
 
 </resources>

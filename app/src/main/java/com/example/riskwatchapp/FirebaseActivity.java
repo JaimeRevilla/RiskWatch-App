@@ -114,7 +114,6 @@ public class FirebaseActivity extends AppCompatActivity {
         Uri file_uri = Uri.fromFile(file);
         UploadTask uploadTask = sleepRef.putFile(file_uri);
 
-
         Log.i(APP_TAG,filename);
 
         uploadTask.addOnFailureListener(new OnFailureListener() {

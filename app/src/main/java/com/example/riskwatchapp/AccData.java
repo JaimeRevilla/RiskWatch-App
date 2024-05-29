@@ -1,5 +1,6 @@
 package com.example.riskwatchapp;
 
+
 public class AccData {
 
     int status = AccStatus.ACC_STATUS_NONE;

@@ -143,13 +143,11 @@ public class ActPrincp extends FragmentActivity {
         isMeasurementRunning = false;
 
 
-
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), "android.permissions.BODY_SENSORS") == PackageManager.PERMISSION_DENIED)
             requestPermissions(new String[]{Manifest.permission.BODY_SENSORS}, 0);
 
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), "android.permissions.ACTIVITY_RECOGNITION") == PackageManager.PERMISSION_DENIED)
             requestPermissions(new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, 0);
-
 
     }
 
@@ -264,7 +262,6 @@ public class ActPrincp extends FragmentActivity {
             public void run() {
                 Log.i(APP_TAG, "-----TIMER 60 sec EXPIRED------");
 
-
                 // This code will be executed every 60 seconds
 
             }
@@ -287,15 +284,13 @@ public class ActPrincp extends FragmentActivity {
             hr_value = String.valueOf(hrData.hr);
             hribi_value = String.valueOf(hrData.ibi);
             String timestamp = hrData.timeStamp;
-
+            Log.i(APP_TAG, "hr recibido: ");
             //Discard write data if both variables are 0
             if (hrData.hr!=0 || hrData.ibi!=0) {
 
 
                 fileString = fileString+ timestamp+ ", " + hr_value + ", " + hribi_value + ", " + 0+ ", " + 0 + ", " +0+ ", " +0+ ", " +0+ ", " +0+ ", " + "H"+"\n";
-                FileWriters(fileString,file_stress);
-                fileString = "";
-                Log.i(APP_TAG, "FILE WRITTEN: ");
+
                 Log.i(APP_TAG, "HR: "+hrData.hr+", "+ hrData.ibi);
 
             }
@@ -344,7 +339,7 @@ public class ActPrincp extends FragmentActivity {
         public void onConnectionResult(int stringResourceId) {
 
 
-            if (stringResourceId != R.string.ConnectedToHTs) {
+            if (stringResourceId != R.string.ConnectedToHs) {
                 finish();
             }
 

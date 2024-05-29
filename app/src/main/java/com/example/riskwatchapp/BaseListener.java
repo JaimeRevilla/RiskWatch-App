@@ -1,4 +1,5 @@
 package com.example.riskwatchapp;
+
 /*
  * Copyright 2022 Samsung Electronics Co., Ltd. All Rights Reserved.
  *
@@ -72,3 +73,4 @@ public class BaseListener {
     }
 
 }
+

@@ -50,10 +50,10 @@ public class HRVListener extends BaseListener {
                 Log.e(APP_TAG, " onError called: " + trackerError);
                 setHandlerRunning(false);
                 if (trackerError == HealthTracker.TrackerError.PERMISSION_ERROR) {
-                    TrackerDataNotifier.getInstance().notifyError(R.string.DeniedPermission);
+                    TrackerDataNotifier.getInstance().notifyError(R.string.NoPermission);
                 }
                 if (trackerError == HealthTracker.TrackerError.SDK_POLICY_ERROR) {
-                    TrackerDataNotifier.getInstance().notifyError(R.string.SDKErrorPolicy);
+                    TrackerDataNotifier.getInstance().notifyError(R.string.SdkPolicyError);
                 }
             }
         };

@@ -230,14 +230,14 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
         npulse  = npulse +1;
         Log.i(APP_TAG, "BOTON SEND DATA  " + npulse);
 
-        if (npulse ==1) {
 
-            counterSend = new CountDownTimer(3000, 3000) {
+        if (npulse ==1){
+
+            counterSend= new CountDownTimer(3000, 3000) {
                 public void onTick(long millisUntilFinished) {
 
 
                 }
-
                 // When the task is over it will print 00:00:00 there
                 public void onFinish() {
                     Log.i(APP_TAG, "timer end ACTIVITY");
@@ -245,9 +245,9 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
 
                     SimpleDateFormat time_now = new SimpleDateFormat("HH_mm_ss");
                     String timestamp = time_now.format(new Date());
-                    fileString_log_start = fileString_log_start + timestamp + ", " + "start" + ", " + "timerEnd()" + "\n";
+                    fileString_log_start = fileString_log_start + timestamp+", "+"start"+", "+"timerEnd()"+"\n";
 
-                    if (npulse >= 1) {
+                    if(npulse >= 6) {
                         Intent mainIntent = new Intent(StartAct.this, FirebaseActivity.class);
                         startActivity(mainIntent);
                     }
@@ -256,6 +256,8 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
                 }
             }.start();
         }
+
+
     }
 
     public void startSleep(View v){
@@ -388,7 +390,7 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
         SimpleDateFormat sdf_filename = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss");
         String file_name = sdf_filename.format(new Date());
 
-        File path = new File( Objects.requireNonNull(this.getExternalFilesDir(null)).getAbsolutePath() + "/StressData");
+        File path = new File( Objects.requireNonNull(this.getExternalFilesDir(null)).getAbsolutePath() + "/SleepData");
 
         if (!path.exists()){
             path.mkdirs();

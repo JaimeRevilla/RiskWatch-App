@@ -39,6 +39,8 @@ public class ConnectionManag {
         @Override
         public void onConnectionSuccess() {
             Log.i(TAG, "Connected");
+            connectionObserver.onConnectionResult(R.string.ConnectedToHs);
+
             if (!isHeartRateAvailable(healthTrackingService)) {
                 Log.i(TAG, "Device does not support Heart Rate tracking");
                 connectionObserver.onConnectionResult(R.string.NoHrSupport);
@@ -75,7 +77,6 @@ public class ConnectionManag {
     }
 
 
-
     public void initHeartRate(HRVListener heartRateListener) {
         final HealthTracker healthTracker;
         healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.HEART_RATE);
@@ -95,7 +96,6 @@ public class ConnectionManag {
         baseListener.setHandler(new Handler(Looper.getMainLooper()));
     }
 
-
     private boolean isHeartRateAvailable(@NonNull HealthTrackingService healthTrackingService) {
         final List<HealthTrackerType> availableTrackers = healthTrackingService.getTrackingCapability().getSupportHealthTrackerTypes();
         return availableTrackers.contains(HealthTrackerType.HEART_RATE);
@@ -108,4 +108,3 @@ public class ConnectionManag {
 
     }
 }
-
