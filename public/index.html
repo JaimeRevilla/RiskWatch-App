@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-colorschemes"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -21,8 +22,9 @@
             <div id="map"></div>
         </div>
         <div id="hrv-container">
-            <h2>Gráfico de HRV</h2>
-            <canvas id="hrv-chart"></canvas>
+            <h2>Listado de HRV</h2>
+            <ul id="hrv-list"></ul>
+            <canvas id="hrv-heatmap"></canvas>
         </div>
     </div>
 
@@ -131,43 +133,43 @@
             }
         }
 
-        // Función para crear el gráfico de líneas
-        function createHRVChart(hrvValues) {
-            const ctx = document.getElementById('hrv-chart').getContext('2d');
-            const hrvChart = new Chart(ctx, {
-                type: 'line',
+        // Función para crear el heatmap usando un gráfico de barras horizontales
+        function createHRVHeatmap(hrvValues) {
+            const ctx = document.getElementById('hrv-heatmap').getContext('2d');
+            const hrvHeatmap = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: hrvValues.map((_, index) => index + 1), // Etiquetas de los datos (1, 2, 3, ...)
+                    labels: hrvValues.map((_, index) => index + 1),
                     datasets: [{
-                        label: 'Variabilidad de la Frecuencia Cardíaca (HRV)',
+                        label: 'HRV Heatmap',
                         data: hrvValues,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderWidth: 1,
-                        fill: true,
-                        tension: 0.4 // Hacer la línea más suave
+                        backgroundColor: hrvValues.map(value => {
+                            const alpha = (value - Math.min(...hrvValues)) / (Math.max(...hrvValues) - Math.min(...hrvValues));
+                            return `rgba(255, 0, 0, ${alpha})`;
+                        }),
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     scales: {
                         x: {
-                            title: {
-                                display: true,
-                                text: 'Tiempo'
-                            }
+                            beginAtZero: true
                         },
                         y: {
-                            title: {
-                                display: true,
-                                text: 'HRV'
-                            }
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        colorschemes: {
+                            scheme: 'brewer.RdYlGn11'
                         }
                     }
                 }
             });
         }
 
-        // Función principal para cargar y mostrar los datos en el mapa y gráfico de líneas
+        // Función principal para cargar y mostrar los datos en el mapa y heatmap
         async function loadDataAndDisplay() {
             try {
                 // Obtener datos de ubicación
@@ -190,9 +192,15 @@
                     map.setView([lat, lon], 10); // Zoom al primer marcador
                 }
 
-                // Mostrar datos de HRV en el gráfico de líneas
+                // Mostrar datos de HRV en el heatmap
                 if (hrvValues) {
-                    createHRVChart(hrvValues);
+                    const hrvList = document.getElementById('hrv-list');
+                    hrvValues.forEach(hrv => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = hrv;
+                        hrvList.appendChild(listItem);
+                    });
+                    createHRVHeatmap(hrvValues);
                 }
             } catch (error) {
                 console.error('Error al cargar y mostrar los datos:', error);

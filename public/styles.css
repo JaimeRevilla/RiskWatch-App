@@ -43,6 +43,16 @@ header {
     overflow-y: auto;
 }
 
+#hrv-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#hrv-list li {
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+}
+
 footer {
     text-align: center;
     padding: 10px;
@@ -52,7 +62,7 @@ footer {
     position: relative;
 }
 
-#hrv-chart {
+#hrv-heatmap {
     height: 400px;
     width: 100%;
     border-radius: 8px;
