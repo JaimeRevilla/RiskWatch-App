@@ -26,6 +26,10 @@
         </div>
     </div>
 
+    <div id="alert-message" class="hidden">
+        ATENCION, APROXIMANDOSE A PARADA DE METRO TENGA PRECAUCION Y RELAJESE!!
+    </div>
+
     <footer>
         <p>Desarrollado por Jaime Revilla</p>
     </footer>
@@ -211,6 +215,16 @@
             });
         }
 
+        // Función para comprobar si la ubicación está dentro de algún círculo
+        function checkProximity(location) {
+            metroStations.forEach(station => {
+                const distance = map.distance([location.lat, location.lon], [station.lat, station.lon]);
+                if (distance <= 100) {
+                    document.getElementById('alert-message').classList.remove('hidden');
+                }
+            });
+        }
+
         // Función principal para cargar y mostrar los datos en el mapa y gráfico de líneas
         async function loadDataAndDisplay() {
             try {
@@ -232,6 +246,7 @@
                     const marker = L.marker([lat, lon]).addTo(map);
                     marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}, <b>Altura:</b> ${height} metros`);
                     map.setView([lat, lon], 10); // Zoom al primer marcador
+                    checkProximity(location); // Comprobar proximidad a paradas de metro
                 }
 
                 // Mostrar datos de HRV en el gráfico de líneas
