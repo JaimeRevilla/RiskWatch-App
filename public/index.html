@@ -133,32 +133,49 @@
             }
         }
 
-        // Función para crear el heatmap usando un gráfico de barras horizontales
+        // Función para crear el heatmap
         function createHRVHeatmap(hrvValues) {
             const ctx = document.getElementById('hrv-heatmap').getContext('2d');
             const hrvHeatmap = new Chart(ctx, {
-                type: 'bar',
+                type: 'matrix',
                 data: {
-                    labels: hrvValues.map((_, index) => index + 1),
                     datasets: [{
                         label: 'HRV Heatmap',
-                        data: hrvValues,
-                        backgroundColor: hrvValues.map(value => {
+                        data: hrvValues.map((value, index) => ({ x: index + 1, y: 1, v: value })),
+                        backgroundColor(context) {
+                            const value = context.dataset.data[context.dataIndex].v;
                             const alpha = (value - Math.min(...hrvValues)) / (Math.max(...hrvValues) - Math.min(...hrvValues));
-                            return `rgba(255, 0, 0, ${alpha})`;
-                        }),
+                            return Chart.helpers.color('red').alpha(alpha).rgbString();
+                        },
                         borderColor: 'rgba(255, 255, 255, 0.1)',
-                        borderWidth: 1
+                        borderWidth: 1,
+                        width(context) {
+                            const a = context.chart.chartArea;
+                            return (a.right - a.left) / hrvValues.length - 1;
+                        },
+                        height(context) {
+                            const a = context.chart.chartArea;
+                            return (a.bottom - a.top) - 1;
+                        }
                     }]
                 },
                 options: {
-                    scales: {
-                        x: {
-                            beginAtZero: true
-                        },
-                        y: {
-                            beginAtZero: true
+                    tooltips: {
+                        callbacks: {
+                            title() { return ''; },
+                            label(context) {
+                                const v = context.dataset.data[context.dataIndex];
+                                return ['Index: ' + v.x, 'HRV: ' + v.v];
+                            }
                         }
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: false
+                        }],
+                        yAxes: [{
+                            display: false
+                        }]
                     },
                     plugins: {
                         colorschemes: {
@@ -209,6 +226,7 @@
 
         // Ejecutar la función principal
         loadDataAndDisplay();
+
     </script>
 </body>
 </html>
