@@ -7,6 +7,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-colorschemes"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -22,6 +24,7 @@
         <div id="hrv-container">
             <h2>Listado de HRV</h2>
             <ul id="hrv-list"></ul>
+            <canvas id="hrv-heatmap"></canvas>
         </div>
     </div>
 
@@ -130,7 +133,60 @@
             }
         }
 
-        // Función principal para cargar y mostrar los datos en el mapa
+        // Función para crear el heatmap
+        function createHRVHeatmap(hrvValues) {
+            const ctx = document.getElementById('hrv-heatmap').getContext('2d');
+            const hrvHeatmap = new Chart(ctx, {
+                type: 'matrix',
+                data: {
+                    datasets: [{
+                        label: 'HRV Heatmap',
+                        data: hrvValues.map((value, index) => ({ x: index + 1, y: 1, v: value })),
+                        backgroundColor(context) {
+                            const value = context.dataset.data[context.dataIndex].v;
+                            const alpha = (value - Math.min(...hrvValues)) / (Math.max(...hrvValues) - Math.min(...hrvValues));
+                            return Chart.helpers.color('red').alpha(alpha).rgbString();
+                        },
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        width(context) {
+                            const a = context.chart.chartArea;
+                            return (a.right - a.left) / hrvValues.length - 1;
+                        },
+                        height(context) {
+                            const a = context.chart.chartArea;
+                            return (a.bottom - a.top) - 1;
+                        }
+                    }]
+                },
+                options: {
+                    tooltips: {
+                        callbacks: {
+                            title() { return ''; },
+                            label(context) {
+                                const v = context.dataset.data[context.dataIndex];
+                                return ['Index: ' + v.x, 'HRV: ' + v.v];
+                            }
+                        }
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: false
+                        }],
+                        yAxes: [{
+                            display: false
+                        }]
+                    },
+                    plugins: {
+                        colorschemes: {
+                            scheme: 'brewer.RdYlGn11'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función principal para cargar y mostrar los datos en el mapa y heatmap
         async function loadDataAndDisplay() {
             try {
                 // Obtener datos de ubicación
@@ -153,7 +209,7 @@
                     map.setView([lat, lon], 10); // Zoom al primer marcador
                 }
 
-                // Mostrar datos de HRV en el listado
+                // Mostrar datos de HRV en el heatmap
                 if (hrvValues) {
                     const hrvList = document.getElementById('hrv-list');
                     hrvValues.forEach(hrv => {
@@ -161,6 +217,7 @@
                         listItem.textContent = hrv;
                         hrvList.appendChild(listItem);
                     });
+                    createHRVHeatmap(hrvValues);
                 }
             } catch (error) {
                 console.error('Error al cargar y mostrar los datos:', error);
