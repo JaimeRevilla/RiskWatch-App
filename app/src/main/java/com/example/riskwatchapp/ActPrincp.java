@@ -293,6 +293,9 @@ public class ActPrincp extends FragmentActivity {
 
                 Log.i(APP_TAG, "HR: "+hrData.hr+", "+ hrData.ibi);
 
+                FileWriters(fileString,file_stress);
+                fileString = "";
+                Log.i(APP_TAG, "FILE WRITTEN: ");
             }
 
         }

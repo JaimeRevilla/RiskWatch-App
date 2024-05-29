@@ -247,7 +247,7 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
                     String timestamp = time_now.format(new Date());
                     fileString_log_start = fileString_log_start + timestamp+", "+"start"+", "+"timerEnd()"+"\n";
 
-                    if(npulse >= 6) {
+                    if(npulse >= 1) {
                         Intent mainIntent = new Intent(StartAct.this, FirebaseActivity.class);
                         startActivity(mainIntent);
                     }
@@ -390,7 +390,7 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
         SimpleDateFormat sdf_filename = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss");
         String file_name = sdf_filename.format(new Date());
 
-        File path = new File( Objects.requireNonNull(this.getExternalFilesDir(null)).getAbsolutePath() + "/SleepData");
+        File path = new File( Objects.requireNonNull(this.getExternalFilesDir(null)).getAbsolutePath() + "/StressData");
 
         if (!path.exists()){
             path.mkdirs();
