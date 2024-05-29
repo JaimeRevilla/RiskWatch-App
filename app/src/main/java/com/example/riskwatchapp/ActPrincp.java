@@ -227,7 +227,7 @@ public class ActPrincp extends FragmentActivity {
     }
 
     private void createFile() {
-        sdf_filename = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss");
+        sdf_filename = new SimpleDateFormat("yyyyMMdd");
         String file_name = sdf_filename.format(new Date());
 
         path = new File( Objects.requireNonNull(this.getExternalFilesDir(null)).getAbsolutePath() + "/StressData");
@@ -235,7 +235,7 @@ public class ActPrincp extends FragmentActivity {
         if (!path.exists()){
             path.mkdirs();
         }
-        file_stress = new File(path, "data_stress_"+file_name+".csv");
+        file_stress = new File(path, file_name+ "_data_stress.csv");
         logs = new File(path, "LOGS_"+file_name+".csv");
 
     }
