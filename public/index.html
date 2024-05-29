@@ -48,11 +48,30 @@
         const storageRef = storage.ref();
 
         // Inicializa el mapa
-        const map = L.map('map').setView([0, 0], 2); // Coordenadas iniciales y zoom
+        const map = L.map('map').setView([43.263008, -2.934244], 13); // Coordenadas iniciales y zoom
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
+
+        // Coordenadas de las paradas de metro
+        const metroStations = [
+            { lat: 43.270514, lon: -2.949449, name: "Deusto" },
+            { lat: 43.262668, lon: -2.946009, name: "San Mames" },
+            { lat: 43.260841, lon: -2.940002, name: "Indautxu" },
+            { lat: 43.263008, lon: -2.934244, name: "Moyua" },
+            { lat: 43.261320, lon: -2.927671, name: "Abando" }
+        ];
+
+        // Añadir círculos para las paradas de metro
+        metroStations.forEach(station => {
+            L.circle([station.lat, station.lon], {
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.5,
+                radius: 100
+            }).bindPopup(`<b>Parada de Metro:</b> ${station.name}`).addTo(map);
+        });
 
         // Función para obtener la URL de descarga del archivo CSV más reciente en un directorio específico
         function fetchLatestCSV(directory, fileIdentifier) {
