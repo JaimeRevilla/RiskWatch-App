@@ -15,11 +15,17 @@ header {
     width: 100%;
 }
 
-#map-container {
+#main-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    gap: 20px;
+}
+
+#map-container, #hrv-container {
     flex: 1;
-    width: 100%;
-    max-width: 1200px;
-    margin: 20px auto;
+    max-width: 600px;
     padding: 10px;
     border-radius: 8px;
     background-color: white;
@@ -30,6 +36,21 @@ header {
     height: 500px;
     width: 100%;
     border-radius: 8px;
+}
+
+#hrv-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+#hrv-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#hrv-list li {
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
 }
 
 footer {

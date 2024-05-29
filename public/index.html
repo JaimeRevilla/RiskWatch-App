@@ -15,8 +15,14 @@
         <p>Visualización de datos de ubicación y altura</p>
     </header>
 
-    <div id="map-container">
-        <div id="map"></div>
+    <div id="main-container">
+        <div id="map-container">
+            <div id="map"></div>
+        </div>
+        <div id="hrv-container">
+            <h2>Listado de HRV</h2>
+            <ul id="hrv-list"></ul>
+        </div>
     </div>
 
     <footer>
@@ -100,6 +106,30 @@
             }
         }
 
+        // Función para procesar los datos de HRV (Stress)
+        function processHRVData(data) {
+            console.log('Datos de HRV CSV:', data);
+            const rows = data.trim().split('\n');
+            const hrvValues = [];
+
+            rows.forEach(row => {
+                const columns = row.split(',');
+                if (columns.length > 1) {
+                    const hrv = parseFloat(columns[1]);
+                    if (hrv !== 0 && !isNaN(hrv)) {
+                        hrvValues.push(hrv);
+                    }
+                }
+            });
+
+            if (hrvValues.length > 0) {
+                return hrvValues;
+            } else {
+                console.error('No se encontraron valores válidos de HRV');
+                return null;
+            }
+        }
+
         // Función principal para cargar y mostrar los datos en el mapa
         async function loadDataAndDisplay() {
             try {
@@ -111,11 +141,26 @@
                 const heightData = await fetchLatestCSV('Datos_An', '_heightData.csv');
                 const height = processHeightData(heightData);
 
+                // Obtener datos de HRV
+                const hrvData = await fetchLatestCSV('Datos_An', '_data_stress.csv');
+                const hrvValues = processHRVData(hrvData);
+
+                // Mostrar datos en el mapa
                 if (location && !isNaN(height)) {
                     const { lat, lon } = location;
                     const marker = L.marker([lat, lon]).addTo(map);
                     marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}, <b>Altura:</b> ${height} metros`);
                     map.setView([lat, lon], 10); // Zoom al primer marcador
+                }
+
+                // Mostrar datos de HRV en el listado
+                if (hrvValues) {
+                    const hrvList = document.getElementById('hrv-list');
+                    hrvValues.forEach(hrv => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = hrv;
+                        hrvList.appendChild(listItem);
+                    });
                 }
             } catch (error) {
                 console.error('Error al cargar y mostrar los datos:', error);
