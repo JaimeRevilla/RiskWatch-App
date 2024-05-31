@@ -45,21 +45,21 @@ public class ConnectionManag {
                 Log.i(TAG, "Device does not support Heart Rate tracking");
                 connectionObserver.onConnectionResult(R.string.NoHrSupport);
             }
-            if (!isAccAvailable(healthTrackingService)) {
-                Log.i(TAG, "Device does not support Accelerometer tracking");
-                connectionObserver.onConnectionResult(1); //"Acc not supported"
-            }
         }
 
+        /**
+         *
+         */
         @Override
         public void onConnectionEnded() {
-            Log.i(TAG, "Disconnected");
+
         }
 
         @Override
         public void onConnectionFailed(HealthTrackerException e) {
-            connectionObserver.onError(e);
+
         }
+
     };
 
     ConnectionManag(ConnectionObsv observer) {
@@ -84,13 +84,6 @@ public class ConnectionManag {
         setHandlerForBaseListener(heartRateListener);
     }
 
-    public void initAcc(AccListener accListener) {
-        final HealthTracker healthTracker;
-        healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.ACCELEROMETER);
-        accListener.setHealthTracker(healthTracker);
-        setHandlerForBaseListener(accListener);
-    }
-
 
     private void setHandlerForBaseListener(BaseListener baseListener) {
         baseListener.setHandler(new Handler(Looper.getMainLooper()));
@@ -101,10 +94,4 @@ public class ConnectionManag {
         return availableTrackers.contains(HealthTrackerType.HEART_RATE);
     }
 
-    private boolean isAccAvailable(@NonNull HealthTrackingService healthTrackingService) {
-        final List<HealthTrackerType> availableTrackers = healthTrackingService.getTrackingCapability().getSupportHealthTrackerTypes();
-        return availableTrackers.contains(HealthTrackerType.ACCELEROMETER);
-
-
-    }
 }

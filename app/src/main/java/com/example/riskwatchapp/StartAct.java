@@ -60,6 +60,7 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
     private LocationManager locationManager;
     private SensorManager sensorManager;
     private Sensor pressureSensor;
+    private Sensor accelerometer;
     private boolean altitudeDisplayed = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 2;
@@ -70,6 +71,10 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
 
     private Double latitude = null;
     private Double longitude = null;
+    private File accFile;
+    private FileWriter accWriter;
+    private long lastUpdate = 0;
+    private static final int ACCELEROMETER_INTERVAL = 4000; // 4 seconds
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,12 +99,20 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
         if (pressureSensor != null) {
             sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
+        if (accelerometer != null) {
+            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+
         checkPermissions();
+        initializeFiles();
+
 
 
 
@@ -190,6 +203,22 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
         }
     }
 
+    private void initializeFiles() {
+        File dir = new File(getExternalFilesDir(null), "AccData");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        String currentDate = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date());
+        accFile = new File(dir, currentDate + "_accData.csv");
+        try {
+            accWriter = new FileWriter(accFile);
+            accWriter.append("timestamp,x,y,z\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         // No es necesario implementar este método para este proyecto
@@ -197,14 +226,29 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (!altitudeDisplayed) {
-            if (event.sensor.getType() == Sensor.TYPE_PRESSURE) {
+        if (event.sensor.getType() == Sensor.TYPE_PRESSURE) {
+            if (!altitudeDisplayed) {
                 float pressure = event.values[0];
                 double height = calculateHeight(pressure, TEMPERATURE_KELVIN);
 
                 altitudeDisplayed = true;  // Mostrar y guardar la información de la altura solo una vez
 
                 saveHeightDataToCSV(height);
+            }
+        } else if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastUpdate >= ACCELEROMETER_INTERVAL) {
+                lastUpdate = currentTime;
+                float x = event.values[0];
+                float y = event.values[1];
+                float z = event.values[2];
+
+                try {
+                    accWriter.append(String.format(Locale.US, "%d,%.3f,%.3f,%.3f\n", currentTime, x, y, z));
+                    accWriter.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

@@ -21,7 +21,5 @@ import java.util.List;
 public interface TrackerDataObserver {
     void onHeartRateTrackerDataChanged(HRVData hrData);
 
-    void onAccTrackerDataChanged(List<AccData>  accData);
-
     void onError(int errorResourceId);
 }

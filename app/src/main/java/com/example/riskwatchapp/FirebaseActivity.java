@@ -157,10 +157,12 @@ public class FirebaseActivity extends AppCompatActivity {
         // Obtén las referencias de los directorios
         File altitudeDir = new File(Environment.getExternalStorageDirectory() + "/Android/data/com.example.riskwatchapp/files/heightData");
         File locationDir = new File(Environment.getExternalStorageDirectory() + "/Android/data/com.example.riskwatchapp/files/locationData");
+        File accDir = new File(Environment.getExternalStorageDirectory() + "/Android/data/com.example.riskwatchapp/files/AccData");
 
         // Encuentra el archivo más reciente en cada directorio
         File altitudeDataFile = getLatestFile(altitudeDir);
         File locationDataFile = getLatestFile(locationDir);
+        File accDataFile = getLatestFile(accDir);
 
         // Obtén la referencia del almacenamiento de Firebase
         FirebaseStorage storage = FirebaseStorage.getInstance();
@@ -180,6 +182,14 @@ public class FirebaseActivity extends AppCompatActivity {
             uploadFile(locationRef, locationDataFile);
         } else {
             Log.e(TAG, "No se encontró un archivo de ubicación en: " + locationDir.getAbsolutePath());
+        }
+
+        // Subir el archivo de datos de acc
+        if (accDataFile != null) {
+            StorageReference accRef = storageRef.child("Datos_An/" + accDataFile.getName());
+            uploadFile(accRef, accDataFile);
+        } else {
+            Log.e(TAG, "No se encontró un archivo de ubicación en: " + accDir.getAbsolutePath());
         }
     }
     private File getLatestFile(File directory) {

@@ -95,14 +95,10 @@ public class ActPrincp extends FragmentActivity {
     private ConnectionManag connectionManager;
     private HRVListener heartRateListener = null;
 
-    private AccListener accListener = null;
-
     public String hr_value = "";
 
     public String hribi_value = "";
-    public int acx=0;
-    public int acy=0;
-    public int acz=0;
+
 
     public int flag =0;
     public int flag2 =0;
@@ -111,7 +107,6 @@ public class ActPrincp extends FragmentActivity {
     public int data_counter = 0;
 
 
-    SimpleDateFormat sdf;
     String fileString = "";
     SimpleDateFormat sdf_filename;
 
@@ -190,7 +185,7 @@ public class ActPrincp extends FragmentActivity {
             if(!file.exists()){
                 file.createNewFile();
                 FileOutputStream fOut = new FileOutputStream(file, true);
-                fOut.write(" timestamp, hr, ibi, sop2, temp, ambientT, acx, acy, acz, sensor \n".getBytes());
+                fOut.write(" timestamp, hr, ibi, sensor \n".getBytes());
 //                fOut.flush();
                 fOut.close();
             }
@@ -289,7 +284,7 @@ public class ActPrincp extends FragmentActivity {
             if (hrData.hr!=0 || hrData.ibi!=0) {
 
 
-                fileString = fileString+ timestamp+ ", " + hr_value + ", " + hribi_value + ", " + 0+ ", " + 0 + ", " +0+ ", " +0+ ", " +0+ ", " +0+ ", " + "H"+"\n";
+                fileString = fileString+ timestamp+ ", " + hr_value + ", " + hribi_value  + "H"+"\n";
 
                 Log.i(APP_TAG, "HR: "+hrData.hr+", "+ hrData.ibi);
 
@@ -301,34 +296,7 @@ public class ActPrincp extends FragmentActivity {
         }
 
 
-        @Override
-        public void onAccTrackerDataChanged(List<AccData> accList) {
-            //It's a raw data value. You can convert it to m/s2 with:
-            // 9.81 / (16383.75 / 4.0)) * value
 
-            //Receives a list of AccData objects
-            //  Log.i(APP_TAG, "MAIN-ACCEL: LIST SIZE: "+accList.size());
-
-            data_counter=data_counter+1;
-
-            for (int i = 0; i < accList.size(); i += 1) {
-                acx = accList.get(i).sumX;
-                acy = accList.get(i).sumY;
-                acz = accList.get(i).sumZ;
-
-                String timestamp = accList.get(i).timeStamp;
-                fileString = fileString+ timestamp+ ", " + 0 + ", " + 0 + ", " + 0+ ", " +0+ ", " + 0 + ", " + acx+ ", "+ acy+ ", "+ acz+ ", "+"A"+"\n";
-            }
-            //Se llama 1 vez cada 12 segundos: 12*5 = 60 segundos
-            // 5 datos por segundo: 60*5 = 300 datos por minuto
-            //    if (data_counter >= 5){ //escribir en fichero cada 1 minuto
-            //data_counter = 0;
-
-            //  }
-
-
-
-        }
 
         @Override
         public void onError(int errorResourceId) {
@@ -349,10 +317,8 @@ public class ActPrincp extends FragmentActivity {
             TrackerDataNotifier.getInstance().addObserver(trackerDataObserver);
 
             heartRateListener = new HRVListener();
-            accListener = new AccListener();
 
             connectionManager.initHeartRate(heartRateListener);
-            connectionManager.initAcc(accListener);
             startTimer();
 
             measure();
@@ -511,9 +477,6 @@ public class ActPrincp extends FragmentActivity {
         if (heartRateListener != null) {
             heartRateListener.stopTracker();
         }
-        if (accListener != null) {
-            accListener.stopTracker();
-        }
 
         TrackerDataNotifier.getInstance().removeObserver(trackerDataObserver);
         if (connectionManager != null) {
@@ -527,8 +490,6 @@ public class ActPrincp extends FragmentActivity {
         heartRateListener.startTracker();
         Log.i(APP_TAG, "HR tracker ON");
 
-        accListener.startTracker();
-        Log.i(APP_TAG, "ACC tracker ON");
 
     }
     static final float ALPHA = 0.25f; // if ALPHA = 1 OR 0, no filter applies.
