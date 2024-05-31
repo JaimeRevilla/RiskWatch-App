@@ -94,10 +94,15 @@ public class ActPrincp extends FragmentActivity {
     public boolean isMeasurementRunning = false;
     private ConnectionManag connectionManager;
     private HRVListener heartRateListener = null;
+    private SpO2Listener spO2Listener = null;
+
+    private int previousStatus = SpO2Status.INITIAL_STATUS;
 
     public String hr_value = "";
 
     public String hribi_value = "";
+
+    public String spo2_value = "";
 
 
     public int flag =0;
@@ -112,6 +117,7 @@ public class ActPrincp extends FragmentActivity {
 
     File path;
     File file_stress;
+    File file_spo2;
     File logs;
     String fileString_log="";
     private HealthTrackingService healthTrackingService = null;
@@ -180,31 +186,28 @@ public class ActPrincp extends FragmentActivity {
 
 
     }
-    public void FileWriters(String str, File file){
+    public void FileWriters(String str, File file) {
         try {
-            if(!file.exists()){
-                file.createNewFile();
+            if (!file.exists()) {
+                boolean fileCreated = file.createNewFile();
+                Log.i(APP_TAG, "File created: " + fileCreated);
                 FileOutputStream fOut = new FileOutputStream(file, true);
-                fOut.write(" timestamp, hr, ibi, sensor \n".getBytes());
-//                fOut.flush();
+                fOut.write("timestamp, hr, ibi, spo2, sensor\n".getBytes());
                 fOut.close();
             }
             FileOutputStream fOut = new FileOutputStream(file, true);
             fOut.write(str.getBytes());
             fOut.flush();
             fOut.close();
-
-        } catch (IOException e){
-
-            Log.e("Exception", "File write failed");
+            Log.i(APP_TAG, "Data written to file: " + file.getAbsolutePath());
+        } catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.getMessage());
             SimpleDateFormat time_now = new SimpleDateFormat("HH_mm_ss");
             String timestamp = time_now.format(new Date());
-            fileString_log= fileString_log + timestamp+", "+"main"+", "+"file write exception"+"\n";
-            FileWritersLog(fileString_log,logs);
+            fileString_log = fileString_log + timestamp + ", " + "main" + ", " + "file write exception" + "\n";
+            FileWritersLog(fileString_log, logs);
             fileString_log = "";
         }
-
-
     }
 
     @Override
@@ -225,14 +228,33 @@ public class ActPrincp extends FragmentActivity {
         sdf_filename = new SimpleDateFormat("yyyyMMdd");
         String file_name = sdf_filename.format(new Date());
 
-        path = new File( Objects.requireNonNull(this.getExternalFilesDir(null)).getAbsolutePath() + "/StressData");
+        path = new File(Objects.requireNonNull(this.getExternalFilesDir(null)).getAbsolutePath() + "/StressData");
 
-        if (!path.exists()){
-            path.mkdirs();
+        if (!path.exists()) {
+            boolean dirsCreated = path.mkdirs();
+            Log.i(APP_TAG, "Directories created: " + dirsCreated);
         }
-        file_stress = new File(path, file_name+ "_data_stress.csv");
-        logs = new File(path, "LOGS_"+file_name+".csv");
 
+        file_stress = new File(path, file_name + "_data_stress.csv");
+        file_spo2 = new File(path, file_name + "_data_spo2.csv");
+        logs = new File(path, "LOGS_" + file_name + ".csv");
+
+        try {
+            if (!file_stress.exists()) {
+                boolean fileStressCreated = file_stress.createNewFile();
+                Log.i(APP_TAG, "file_stress created: " + fileStressCreated);
+            }
+            if (!file_spo2.exists()) {
+                boolean fileSpo2Created = file_spo2.createNewFile();
+                Log.i(APP_TAG, "file_spo2 created: " + fileSpo2Created);
+            }
+            if (!logs.exists()) {
+                boolean logsCreated = logs.createNewFile();
+                Log.i(APP_TAG, "logs created: " + logsCreated);
+            }
+        } catch (IOException e) {
+            Log.e(APP_TAG, "File creation failed: " + e.getMessage());
+        }
     }
 
 
@@ -240,6 +262,18 @@ public class ActPrincp extends FragmentActivity {
         stopTrackers();
         // Finalmente, cierra la actividad
         //finish();
+    }
+
+    public void restart_spo2tracker(){
+        if (spO2Listener!=null) {
+            spO2Listener.stopTracker();
+        }
+
+        previousStatus = SpO2Status.INITIAL_STATUS;
+        Log.i(APP_TAG, "SP02 - START TRACKER");
+        connectionManager.initSpO2(spO2Listener);
+
+        spO2Listener.startTracker();
     }
 
 
@@ -257,6 +291,8 @@ public class ActPrincp extends FragmentActivity {
             public void run() {
                 Log.i(APP_TAG, "-----TIMER 60 sec EXPIRED------");
 
+
+                restart_spo2tracker();
                 // This code will be executed every 60 seconds
 
             }
@@ -284,7 +320,7 @@ public class ActPrincp extends FragmentActivity {
             if (hrData.hr!=0 || hrData.ibi!=0) {
 
 
-                fileString = fileString+ timestamp+ ", " + hr_value + ", " + hribi_value  + "H"+"\n";
+                fileString = fileString+ timestamp+ ", " + hr_value + ", " + hribi_value  + ","+ 0 +"," + "H"+"\n";
 
                 Log.i(APP_TAG, "HR: "+hrData.hr+", "+ hrData.ibi);
 
@@ -292,6 +328,50 @@ public class ActPrincp extends FragmentActivity {
                 fileString = "";
                 Log.i(APP_TAG, "FILE WRITTEN: ");
             }
+
+        }
+
+        @Override
+        public void onSpO2TrackerDataChanged(int status, int spO2Value, String timestamp) {
+            if (status == previousStatus) {
+                return;
+            }
+            Log.i(APP_TAG, "Spo2 recibido: ");
+            previousStatus = status;
+            switch (status) {
+                case SpO2Status.CALCULATING:
+                    Log.i(APP_TAG, "SPO2 - Calculating measurement");
+                    break;
+                case SpO2Status.DEVICE_MOVING:
+                    Log.i(APP_TAG, "SPO2 Device is moving");
+                    break;
+                case SpO2Status.LOW_SIGNAL:
+                    Log.i(APP_TAG, "SPO2 Low signal quality");
+                    stop_sp02tracker();
+                    break;
+                case SpO2Status.MEASUREMENT_COMPLETED:
+                    Log.i(APP_TAG, "*********** SPO2 Measurement completed *******************");
+                    spo2_value = String.valueOf(spO2Value);
+                    Log.i(APP_TAG, "SPO2 value " + spo2_value);
+                    fileString = timestamp + ", " + 0 + ", " + 0 + ", " + spo2_value + "S" + "\n";
+                    Log.i(APP_TAG, "Data to write: " + fileString);
+                    FileWriters(fileString, file_spo2);
+                    Log.i(APP_TAG, "Data written to file_spo2");
+                    stop_sp02tracker();
+                    break;
+                default:
+                    Log.i(APP_TAG, "--------SPO2 TIMEOUT--------");
+                    stop_sp02tracker();
+                    break;
+            }
+        }
+
+        public void stop_sp02tracker(){
+            if (spO2Listener!=null) {
+                spO2Listener.stopTracker();
+            }
+
+            Log.i(APP_TAG, "SP02 - STOP TRACKER");
 
         }
 
@@ -317,8 +397,11 @@ public class ActPrincp extends FragmentActivity {
             TrackerDataNotifier.getInstance().addObserver(trackerDataObserver);
 
             heartRateListener = new HRVListener();
+            spO2Listener = new SpO2Listener();
 
             connectionManager.initHeartRate(heartRateListener);
+            connectionManager.initSpO2(spO2Listener);
+
             startTimer();
 
             measure();
@@ -478,6 +561,10 @@ public class ActPrincp extends FragmentActivity {
             heartRateListener.stopTracker();
         }
 
+        if (spO2Listener != null) {
+            spO2Listener.stopTracker();
+        }
+
         TrackerDataNotifier.getInstance().removeObserver(trackerDataObserver);
         if (connectionManager != null) {
             connectionManager.disconnect();
@@ -490,6 +577,8 @@ public class ActPrincp extends FragmentActivity {
         heartRateListener.startTracker();
         Log.i(APP_TAG, "HR tracker ON");
 
+        spO2Listener.startTracker();
+        Log.i(APP_TAG, "SPO2 tracker ON");
 
     }
     static final float ALPHA = 0.25f; // if ALPHA = 1 OR 0, no filter applies.

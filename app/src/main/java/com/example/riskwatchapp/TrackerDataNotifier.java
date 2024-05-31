@@ -44,7 +44,9 @@ public class TrackerDataNotifier {
     public void notifyHeartRateTrackerObservers(HRVData hrData) {
         observers.forEach(observer -> observer.onHeartRateTrackerDataChanged(hrData));
     }
-
+    public void notifySpO2TrackerObservers(int status, int spO2Value, String timestamp) {
+        observers.forEach(observer -> observer.onSpO2TrackerDataChanged(status, spO2Value,timestamp));
+    }
 
     public void notifyError(int errorResourceId) {
         observers.forEach(observer -> observer.onError(errorResourceId));

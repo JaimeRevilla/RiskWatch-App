@@ -1,4 +1,3 @@
-package com.example.riskwatchapp;
 /*
  * Copyright 2022 Samsung Electronics Co., Ltd. All Rights Reserved.
  *
@@ -15,12 +14,12 @@ package com.example.riskwatchapp;
  * limitations under the License.
  */
 
+package com.example.riskwatchapp;
 
-import java.util.List;
-
-public interface TrackerDataObserver {
-    void onHeartRateTrackerDataChanged(HRVData hrData);
-    void onSpO2TrackerDataChanged(int status, int spO2Value, String timestamp);
-
-    void onError(int errorResourceId);
+public class SpO2Status {
+    public static final int LOW_SIGNAL = -5;
+    public static final int DEVICE_MOVING = -4;
+    public static final int INITIAL_STATUS = -1;
+    public static final int CALCULATING = 0;
+    public static final int MEASUREMENT_COMPLETED = 2;
 }

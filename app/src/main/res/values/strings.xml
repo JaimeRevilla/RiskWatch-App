@@ -9,5 +9,6 @@
     <string name="NoPermission">Permissions Check Failed.</string>
     <string name="SdkPolicyError">SDK Policy denied.</string>
     <string name="ConnectedToHs">Connected to Health Tracking Service.</string>
+    <string name="NoSpo2Support">SpO2 no supported on this device.</string>
 
 </resources>

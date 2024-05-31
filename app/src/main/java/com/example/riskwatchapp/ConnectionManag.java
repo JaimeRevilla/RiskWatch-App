@@ -40,26 +40,25 @@ public class ConnectionManag {
         public void onConnectionSuccess() {
             Log.i(TAG, "Connected");
             connectionObserver.onConnectionResult(R.string.ConnectedToHs);
-
+            if (!isSpO2Available(healthTrackingService)) {
+                Log.i(TAG, "Device does not support SpO2 tracking");
+                connectionObserver.onConnectionResult(R.string.NoSpo2Support);
+            }
             if (!isHeartRateAvailable(healthTrackingService)) {
                 Log.i(TAG, "Device does not support Heart Rate tracking");
                 connectionObserver.onConnectionResult(R.string.NoHrSupport);
             }
         }
 
-        /**
-         *
-         */
         @Override
         public void onConnectionEnded() {
-
+            Log.i(TAG, "Disconnected");
         }
 
         @Override
         public void onConnectionFailed(HealthTrackerException e) {
-
+            connectionObserver.onError(e);
         }
-
     };
 
     ConnectionManag(ConnectionObsv observer) {
@@ -76,6 +75,12 @@ public class ConnectionManag {
             healthTrackingService.disconnectService();
     }
 
+    public void initSpO2(SpO2Listener spO2Listener) {
+        final HealthTracker healthTracker;
+        healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.SPO2);
+        spO2Listener.setHealthTracker(healthTracker);
+        setHandlerForBaseListener(spO2Listener);
+    }
 
     public void initHeartRate(HRVListener heartRateListener) {
         final HealthTracker healthTracker;
@@ -85,13 +90,20 @@ public class ConnectionManag {
     }
 
 
+
     private void setHandlerForBaseListener(BaseListener baseListener) {
         baseListener.setHandler(new Handler(Looper.getMainLooper()));
+    }
+
+    private boolean isSpO2Available(@NonNull HealthTrackingService healthTrackingService) {
+        final List<HealthTrackerType> availableTrackers = healthTrackingService.getTrackingCapability().getSupportHealthTrackerTypes();
+        return availableTrackers.contains(HealthTrackerType.SPO2);
     }
 
     private boolean isHeartRateAvailable(@NonNull HealthTrackingService healthTrackingService) {
         final List<HealthTrackerType> availableTrackers = healthTrackingService.getTrackingCapability().getSupportHealthTrackerTypes();
         return availableTrackers.contains(HealthTrackerType.HEART_RATE);
     }
+
 
 }
