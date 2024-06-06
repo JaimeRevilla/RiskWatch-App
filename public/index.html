@@ -23,6 +23,9 @@
         <div id="hrv-container">
             <h2>Gráfico de HRV</h2>
             <canvas id="hrv-chart"></canvas>
+            <h2>Gráfico de Aceleración</h2>
+            <canvas id="acc-chart"></canvas>
+            <p id="running-status">No Corriendo</p>
         </div>
     </div>
 
@@ -32,14 +35,6 @@
             <p>ATENCION, APROXIMANDOSE A PARADA DE METRO TENGA PRECAUCION Y RELAJESE!!</p>
             <button onclick="closeModal()">Aceptar</button>
         </div>
-    </div>
-
-    <div id="hrv-container">
-        <h2>Gráfico de HRV</h2>
-        <canvas id="hrv-chart"></canvas>
-        <h2>Gráfico de Aceleración</h2>
-        <canvas id="acc-chart"></canvas>
-        <p id="running-status">No Corriendo</p>
     </div>
 
     <footer>
@@ -317,16 +312,6 @@
             document.getElementById('alert-modal').style.display = 'none';
         }
 
-        // Añadir un contenedor para el gráfico de aceleración y el indicador de estado
-        const accContainer = document.createElement('div');
-        accContainer.id = 'acc-container';
-        accContainer.innerHTML = `
-            <h2>Gráfico de Aceleración</h2>
-            <canvas id="acc-chart"></canvas>
-            <p id="running-status">No Corriendo</p>
-        `;
-        document.getElementById('main-container').appendChild(accContainer);
-
         // Función principal para cargar y mostrar los datos en el mapa y gráfico de líneas
         async function loadDataAndDisplay() {
             try {
@@ -381,7 +366,7 @@
                 statusIndicator.textContent = 'No Corriendo';
                 statusIndicator.style.color = 'green';
             }
-}
+        }
 
         // Ejecutar la función principal
         loadDataAndDisplay();
