@@ -47,13 +47,13 @@
     <script>
         // Configura Firebase
         const firebaseConfig = {
-            apiKey: "API_KEY",
-            authDomain: "DOMAIN",
-            databaseURL: "DATABASE_URL",
-            projectId: "PROJECT_ID",
-            storageBucket: "STORAGE_BUCKET",
-            messagingSenderId: "SENDER_ID",
-            appId: "APP_ID"
+            apiKey: "AIzaSyDIJorV_JDC03nbKYBR7wkeKjBJLcHcxo",
+            authDomain: "riskwatchapp-5ec8b.firebaseapp.com",
+            databaseURL: "https://riskwatchapp-5ec8b-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "riskwatchapp-5ec8b",
+            storageBucket: "riskwatchapp-5ec8b.appspot.com",
+            messagingSenderId: "162678165225",
+            appId: "1:162678165225:web:3c28dd0d756ade7742a78"
         };
 
         // Inicializa Firebase
@@ -164,12 +164,12 @@
             }
         }
 
-        // Función para procesar los datos de aceleración
+        // Función para procesar los datos de Acc (Stress)
         function processAccData(data) {
             console.log('Datos de aceleración CSV:', data);
             const rows = data.trim().split('\n');
             const accValues = [];
-
+        
             rows.forEach(row => {
                 const columns = row.split(',');
                 if (columns.length === 4) {
@@ -182,7 +182,7 @@
                     }
                 }
             });
-
+        
             if (accValues.length > 0) {
                 return accValues;
             } else {
@@ -270,7 +270,7 @@
                     tension: 0.4
                 }]
             };
-
+        
             const options = {
                 scales: {
                     x: {
@@ -287,7 +287,7 @@
                     }
                 }
             };
-
+        
             const accChart = new Chart(ctx, {
                 type: 'line',
                 data: data,
@@ -315,20 +315,15 @@
             document.getElementById('alert-modal').style.display = 'none';
         }
 
-        // Función para comprobar si el dispositivo está corriendo
-        function checkRunningStatus(accValues) {
-            const runningThreshold = 12; // Definir un umbral de aceleración para correr
-            const runningStatus = accValues.some(value => value > runningThreshold);
-
-            const statusIndicator = document.getElementById('running-status');
-            if (runningStatus) {
-                statusIndicator.textContent = 'Corriendo';
-                statusIndicator.style.color = 'red';
-            } else {
-                statusIndicator.textContent = 'No Corriendo';
-                statusIndicator.style.color = 'green';
-            }
-        }
+        // Añadir un contenedor para el gráfico de aceleración y el indicador de estado
+        const accContainer = document.createElement('div');
+        accContainer.id = 'acc-container';
+        accContainer.innerHTML = `
+            <h2>Gráfico de Aceleración</h2>
+            <canvas id="acc-chart"></canvas>
+            <p id="running-status">No Corriendo</p>
+        `;
+        document.getElementById('main-container').appendChild(accContainer);
 
         // Función principal para cargar y mostrar los datos en el mapa y gráfico de líneas
         async function loadDataAndDisplay() {
@@ -345,7 +340,6 @@
                 const hrvData = await fetchLatestCSV('Datos_An', '_data_stress.csv');
                 const hrvValues = processHRVData(hrvData);
 
-                // Obtener datos de aceleración
                 const accData = await fetchLatestCSV('Datos_An', '_accData.csv');
                 const accValues = processAccData(accData);
 
@@ -363,7 +357,6 @@
                     createHRVChart(hrvValues);
                 }
 
-                // Mostrar datos de aceleración en el gráfico de líneas
                 if (accValues) {
                     createAccChart(accValues);
                     checkRunningStatus(accValues); // Comprobar si el dispositivo está corriendo
@@ -372,6 +365,21 @@
                 console.error('Error al cargar y mostrar los datos:', error);
             }
         }
+
+        // Función para comprobar si el dispositivo está corriendo
+        function checkRunningStatus(accValues) {
+            const runningThreshold = 12; // Definir un umbral de aceleración para correr
+            const runningStatus = accValues.some(value => value > runningThreshold);
+
+            const statusIndicator = document.getElementById('running-status');
+            if (runningStatus) {
+                statusIndicator.textContent = 'Corriendo';
+                statusIndicator.style.color = 'red';
+            } else {
+                statusIndicator.textContent = 'No Corriendo';
+                statusIndicator.style.color = 'green';
+            }
+}
 
         // Ejecutar la función principal
         loadDataAndDisplay();
