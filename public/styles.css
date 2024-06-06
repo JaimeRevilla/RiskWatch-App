@@ -39,7 +39,7 @@ header {
 }
 
 #hrv-container {
-    max-height: 500px;
+    max-height: 1000px; /* Aumentar la altura máxima para acomodar ambos gráficos */
     overflow-y: auto;
 }
 
@@ -52,10 +52,11 @@ footer {
     position: relative;
 }
 
-#hrv-chart {
+#hrv-chart, #acc-chart {
     height: 400px;
     width: 100%;
     border-radius: 8px;
+    margin-bottom: 20px; /* Espacio entre los gráficos */
 }
 
 /* Estilos para el modal */
