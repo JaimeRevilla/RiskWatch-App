@@ -23,7 +23,7 @@ header {
     gap: 20px;
 }
 
-#map-container, #hrv-container {
+#map-container {
     flex: 1;
     max-width: 600px;
     padding: 10px;
@@ -32,15 +32,28 @@ header {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+#hrv-container {
+    flex: 1;
+    max-width: 600px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 #map {
     height: 500px;
     width: 100%;
     border-radius: 8px;
 }
 
-#hrv-container {
-    max-height: 1000px; /* Aumentar la altura máxima para acomodar ambos gráficos */
-    overflow-y: auto;
+#hrv-container canvas {
+    height: 400px;
+    width: 100%;
+    border-radius: 8px;
 }
 
 footer {
@@ -50,13 +63,6 @@ footer {
     color: white;
     width: 100%;
     position: relative;
-}
-
-#hrv-chart, #acc-chart {
-    height: 400px;
-    width: 100%;
-    border-radius: 8px;
-    margin-bottom: 20px; /* Espacio entre los gráficos */
 }
 
 /* Estilos para el modal */
