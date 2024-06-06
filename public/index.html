@@ -16,19 +16,13 @@
         <p>Visualización de datos de ubicación y altura</p>
     </header>
 
-    <div id="map-container">
-        <div id="map"></div>
-    </div>
-    
-    <div id="charts-container">
+    <div id="main-container">
+        <div id="map-container">
+            <div id="map"></div>
+        </div>
         <div id="hrv-container">
             <h2>Gráfico de HRV</h2>
             <canvas id="hrv-chart"></canvas>
-        </div>
-        <div id="acc-container">
-            <h2>Gráfico de Aceleración</h2>
-            <canvas id="acc-chart"></canvas>
-            <p id="running-status">No Corriendo</p>
         </div>
     </div>
 
@@ -40,10 +34,18 @@
         </div>
     </div>
 
+    <div id="hrv-container">
+        <h2>Gráfico de HRV</h2>
+        <canvas id="hrv-chart"></canvas>
+        <h2>Gráfico de Aceleración</h2>
+        <canvas id="acc-chart"></canvas>
+        <p id="running-status">No Corriendo</p>
+    </div>
+
     <footer>
         <p>Desarrollado por Jaime Revilla</p>
     </footer>
-    
+
     <script>
         // Configura Firebase
         const firebaseConfig = {

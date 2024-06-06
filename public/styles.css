@@ -15,9 +15,17 @@ header {
     width: 100%;
 }
 
-#map-container {
+#main-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    gap: 20px;
+}
+
+#map-container, #hrv-container {
     flex: 1;
-    width: 100%;
+    max-width: 600px;
     padding: 10px;
     border-radius: 8px;
     background-color: white;
@@ -30,27 +38,9 @@ header {
     border-radius: 8px;
 }
 
-#charts-container {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 20px;
-    gap: 20px;
-    width: 100%;
-}
-
-#hrv-container, #acc-container {
-    flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-#hrv-chart, #acc-chart {
-    height: 400px;
-    width: 100%;
-    border-radius: 8px;
+#hrv-container {
+    max-height: 500px;
+    overflow-y: auto;
 }
 
 footer {
@@ -62,6 +52,12 @@ footer {
     position: relative;
 }
 
+#hrv-chart {
+    height: 400px;
+    width: 100%;
+    border-radius: 8px;
+}
+
 /* Estilos para el modal */
 .modal {
     display: none;
@@ -69,7 +65,7 @@ footer {
     z-index: 1;
     left: 0;
     top: 0;
-    width: 100%;
+    width: 140%;
     height: 100%;
     overflow: auto;
     background-color: rgb(0,0,0);
