@@ -158,6 +158,33 @@
             }
         }
 
+        // Función para procesar los datos de Acc (Stress)
+        function processAccData(data) {
+            console.log('Datos de aceleración CSV:', data);
+            const rows = data.trim().split('\n');
+            const accValues = [];
+        
+            rows.forEach(row => {
+                const columns = row.split(',');
+                if (columns.length === 4) {
+                    const x = parseFloat(columns[1]);
+                    const y = parseFloat(columns[2]);
+                    const z = parseFloat(columns[3]);
+                    const magnitude = Math.sqrt(x * x + y * y + z * z);
+                    if (!isNaN(magnitude)) {
+                        accValues.push(magnitude);
+                    }
+                }
+            });
+        
+            if (accValues.length > 0) {
+                return accValues;
+            } else {
+                console.error('No se encontraron valores válidos de aceleración');
+                return null;
+            }
+        }
+
         // Función para crear el gráfico de líneas con alerta
         function createHRVChart(hrvValues) {
             const ctx = document.getElementById('hrv-chart').getContext('2d');
@@ -219,6 +246,49 @@
             });
         }
 
+        // Función para crear el gráfico de aceleración
+        function createAccChart(accValues) {
+            const ctx = document.getElementById('acc-chart').getContext('2d');
+            const data = {
+                labels: accValues.map((_, index) => index + 1),
+                datasets: [{
+                    label: 'Magnitud de la Aceleración',
+                    data: accValues,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                    pointBorderColor: 'rgba(75, 192, 192, 1)',
+                    pointRadius: 5,
+                    fill: true,
+                    tension: 0.4
+                }]
+            };
+        
+            const options = {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Tiempo'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Magnitud de Aceleración'
+                        }
+                    }
+                }
+            };
+        
+            const accChart = new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: options
+            });
+        }
+
         // Función para comprobar si la ubicación está dentro de algún círculo
         function checkProximity(location) {
             metroStations.forEach(station => {
@@ -239,6 +309,16 @@
             document.getElementById('alert-modal').style.display = 'none';
         }
 
+        // Añadir un contenedor para el gráfico de aceleración y el indicador de estado
+        const accContainer = document.createElement('div');
+        accContainer.id = 'acc-container';
+        accContainer.innerHTML = `
+            <h2>Gráfico de Aceleración</h2>
+            <canvas id="acc-chart"></canvas>
+            <p id="running-status">No Corriendo</p>
+        `;
+        document.getElementById('main-container').appendChild(accContainer);
+
         // Función principal para cargar y mostrar los datos en el mapa y gráfico de líneas
         async function loadDataAndDisplay() {
             try {
@@ -254,6 +334,9 @@
                 const hrvData = await fetchLatestCSV('Datos_An', '_data_stress.csv');
                 const hrvValues = processHRVData(hrvData);
 
+                const accData = await fetchLatestCSV('Datos_An', '_accData.csv');
+                const accValues = processAccData(accData);
+
                 // Mostrar datos en el mapa
                 if (location && !isNaN(height)) {
                     const { lat, lon } = location;
@@ -267,10 +350,30 @@
                 if (hrvValues) {
                     createHRVChart(hrvValues);
                 }
+
+                if (accValues) {
+                    createAccChart(accValues);
+                    checkRunningStatus(accValues); // Comprobar si el dispositivo está corriendo
+                }
             } catch (error) {
                 console.error('Error al cargar y mostrar los datos:', error);
             }
         }
+
+        // Función para comprobar si el dispositivo está corriendo
+        function checkRunningStatus(accValues) {
+            const runningThreshold = 12; // Definir un umbral de aceleración para correr
+            const runningStatus = accValues.some(value => value > runningThreshold);
+
+            const statusIndicator = document.getElementById('running-status');
+            if (runningStatus) {
+                statusIndicator.textContent = 'Corriendo';
+                statusIndicator.style.color = 'red';
+            } else {
+                statusIndicator.textContent = 'No Corriendo';
+                statusIndicator.style.color = 'green';
+            }
+}
 
         // Ejecutar la función principal
         loadDataAndDisplay();
