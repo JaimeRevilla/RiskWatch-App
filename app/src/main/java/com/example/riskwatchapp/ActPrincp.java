@@ -315,24 +315,25 @@ public class ActPrincp extends FragmentActivity {
             hr_value = String.valueOf(hrData.hr);
             hribi_value = String.valueOf(hrData.ibi);
             String timestamp = hrData.timeStamp;
-            Log.i(APP_TAG, "hr recibido: ");
+            //Log.i(APP_TAG, "hr recibido: ");
             //Discard write data if both variables are 0
             if (hrData.hr!=0 || hrData.ibi!=0) {
 
 
                 fileString = fileString+ timestamp+ ", " + hr_value + ", " + hribi_value  + ","+ 0 +"," + "H"+"\n";
 
-                Log.i(APP_TAG, "HR: "+hrData.hr+", "+ hrData.ibi);
+                //Log.i(APP_TAG, "HR: "+hrData.hr+", "+ hrData.ibi);
 
                 FileWriters(fileString,file_stress);
                 fileString = "";
-                Log.i(APP_TAG, "FILE WRITTEN: ");
+                //Log.i(APP_TAG, "FILE WRITTEN: ");
             }
 
         }
 
         @Override
         public void onSpO2TrackerDataChanged(int status, int spO2Value, String timestamp) {
+            Log.i(APP_TAG, "--- SPO2 - status: " + status);
             if (status == previousStatus) {
                 return;
             }
@@ -351,12 +352,12 @@ public class ActPrincp extends FragmentActivity {
                     break;
                 case SpO2Status.MEASUREMENT_COMPLETED:
                     Log.i(APP_TAG, "*********** SPO2 Measurement completed *******************");
-                    spo2_value = String.valueOf(spO2Value);
+                    String spo2_value = String.valueOf(spO2Value);
                     Log.i(APP_TAG, "SPO2 value " + spo2_value);
-                    fileString = timestamp + ", " + 0 + ", " + 0 + ", " + spo2_value + "S" + "\n";
+                    String fileString = timestamp + ", " + 0 + ", " + 0 + ", " + spo2_value + "S" + "\n";
                     Log.i(APP_TAG, "Data to write: " + fileString);
                     FileWriters(fileString, file_spo2);
-                    Log.i(APP_TAG, "Data written to file_spo2");
+                    Log.i(APP_TAG, "Data written to file_spo2: " + file_spo2.getAbsolutePath());
                     stop_sp02tracker();
                     break;
                 default:
