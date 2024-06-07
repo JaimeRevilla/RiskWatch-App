@@ -170,7 +170,7 @@
             console.log('Datos de aceleración CSV:', data);
             const rows = data.trim().split('\n');
             const accValues = [];
-        
+
             rows.forEach(row => {
                 const columns = row.split(',');
                 if (columns.length === 4) {
@@ -183,7 +183,7 @@
                     }
                 }
             });
-        
+
             if (accValues.length > 0) {
                 return accValues;
             } else {
@@ -271,7 +271,7 @@
                     tension: 0.4
                 }]
             };
-        
+
             const options = {
                 scales: {
                     x: {
@@ -288,7 +288,7 @@
                     }
                 }
             };
-        
+
             const accChart = new Chart(ctx, {
                 type: 'line',
                 data: data,
@@ -298,12 +298,18 @@
 
         // Función para comprobar si la ubicación está dentro de algún círculo
         function checkProximity(location) {
+            let inProximity = false;
             metroStations.forEach(station => {
                 const distance = map.distance([location.lat, location.lon], [station.lat, station.lon]);
                 if (distance <= 100) {
-                    showModal();
+                    inProximity = true;
                 }
             });
+            if (inProximity) {
+                showModal();
+            } else {
+                closeModal();
+            }
         }
 
         // Función para mostrar el modal de alerta
