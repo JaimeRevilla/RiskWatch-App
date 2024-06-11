@@ -109,37 +109,15 @@
         function processLocationData(data) {
             console.log('Datos de ubicación CSV:', data);
 
-            // Partir los datos basados en la coma
-            const parts = data.split(',');
+            const lines = data.trim().split('\n');
+            const locations = lines.map(line => {
+                const [lon, lat, alt] = line.split(',').map(parseFloat);
+                return { lat, lon, alt };
+            });
 
-            if (parts.length === 4) {
-                const lat = parseFloat(parts[0] + '.' + parts[1]);
-                const lon = parseFloat(parts[2] + '.' + parts[3]);
-                console.log('Latitud:', lat, 'Longitud:', lon);
-
-                if (!isNaN(lat) && !isNaN(lon)) {
-                    return { lat, lon };
-                } else {
-                    console.error('Error en la conversión de coordenadas:', parts);
-                    return null;
-                }
-            } else {
-                console.error('Formato de datos incorrecto:', data);
-                return null;
-            }
+            return locations;
         }
-
-        // Función para procesar los datos de altura
-        function processHeightData(data) {
-            console.log('Datos de altura CSV:', data);
-            const height = parseFloat(data.trim());
-            if (!isNaN(height)) {
-                return height;
-            } else {
-                console.error('Error en la conversión de la altura:', data);
-                return null;
-            }
-        }
+        
 
         // Función para procesar los datos de HRV (Stress)
         function processHRVData(data) {
@@ -329,10 +307,6 @@
                 const locationData = await fetchLatestCSV('Datos_An', '_locationData.csv');
                 const location = processLocationData(locationData);
 
-                // Obtener datos de altura
-                const heightData = await fetchLatestCSV('Datos_An', '_heightData.csv');
-                const height = processHeightData(heightData);
-
                 // Obtener datos de HRV
                 const hrvData = await fetchLatestCSV('Datos_An', '_data_stress.csv');
                 const hrvValues = processHRVData(hrvData);
@@ -341,12 +315,16 @@
                 const accValues = processAccData(accData);
 
                 // Mostrar datos en el mapa
-                if (location && !isNaN(height)) {
-                    const { lat, lon } = location;
-                    const marker = L.marker([lat, lon]).addTo(map);
-                    marker.bindPopup(`<b>Latitud:</b> ${lat}, <b>Longitud:</b> ${lon}, <b>Altura:</b> ${height} metros`);
-                    map.setView([lat, lon], 10); // Zoom al primer marcador
-                    checkProximity(location); // Comprobar proximidad a paradas de metro
+                if (locations.length > 0) {
+                    const bounds = locations.map(loc => [loc.lat, loc.lon]);
+                    const polyline = L.polyline(bounds, { color: 'blue' }).addTo(map);
+                    map.fitBounds(polyline.getBounds());
+
+                    locations.forEach(location => {
+                        const marker = L.marker([location.lat, location.lon]).addTo(map);
+                        marker.bindPopup(`<b>Latitud:</b> ${location.lat}, <b>Longitud:</b> ${location.lon}, <b>Altura:</b> ${location.alt} metros`);
+                        checkProximity(location); // Comprobar proximidad a paradas de metro
+                    });
                 }
 
                 // Mostrar datos de HRV en el gráfico de líneas
