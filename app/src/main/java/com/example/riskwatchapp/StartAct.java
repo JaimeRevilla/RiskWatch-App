@@ -195,7 +195,7 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
                 if (latitude != null && longitude != null && height != null) {
                     saveDataToCSV(latitude, longitude, height, acceleration);
                 }
-                handler.postDelayed(this, 2000); // 2 segundos
+                handler.postDelayed(this, 7000); // 7 segundos
             }
         };
         handler.post(runnable);
