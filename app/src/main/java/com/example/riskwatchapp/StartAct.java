@@ -53,6 +53,7 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
     TextView textView;
     Button but_enviar;
     Button but_relax;
+    //Button but_web;
     File logs_start;
     String fileString_log_start="";
     public int npulse = 0;
@@ -84,8 +85,9 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
         textView = findViewById (R.id.stressMeterText);
         but_relax = findViewById(R.id.relaxButton);
         but_enviar = findViewById(R.id.sendDataButton);
-
-
+        //but_web = findViewById(R.id.webButton);
+        //but_web.setOnClickListener(v -> openWebPage());
+        //but_web.setEnabled(false);
         Log.i(APP_TAG, "ON CREATE START ACTIVITY");
 
         createFile();
@@ -308,7 +310,7 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
         textView.setText("activa Water Lock");
         but_relax.setEnabled(false);
         but_enviar.setEnabled(false);
-
+        //but_web.setEnabled(false);
         setTimer();
     }
 
@@ -361,9 +363,11 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
 
         but_enviar.setText("Enviar");
         but_relax.setText("Relaja");
+        //but_web.setText("Web");
         textView.setText("Medidor de estrés");
         but_enviar.setEnabled(true);
         but_relax.setEnabled(true);
+        //but_web.setEnabled(true);
 
     }
 
@@ -449,5 +453,12 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
 
 
     }
+
+    //private void openWebPage() {
+    //    String url = "https://riskwatchapp-5ec8b.web.app";
+    //    Intent intent = new Intent(Intent.ACTION_VIEW);
+    //    intent.setData(Uri.parse(url));
+    //    startActivity(intent);
+    //}
 
 }
