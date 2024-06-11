@@ -359,6 +359,9 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
         FileWriters(fileString_log_start,logs_start);
         fileString_log_start = "";
 
+        but_enviar.setText("Enviar");
+        but_relax.setText("Relaja");
+        textView.setText("Medidor de estrés");
         but_enviar.setEnabled(true);
         but_relax.setEnabled(true);
 
