@@ -23,6 +23,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -30,6 +31,7 @@ import android.widget.TextView;
 
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -58,11 +60,12 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
     String fileString_log_start="";
     public int npulse = 0;
 
+    private Handler handler;
+    private Runnable runnable;
     private LocationManager locationManager;
     private SensorManager sensorManager;
     private Sensor pressureSensor;
     private Sensor accelerometer;
-    private boolean altitudeDisplayed = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 2;
 
@@ -72,10 +75,12 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
 
     private Double latitude = null;
     private Double longitude = null;
+    private Double height = null;
     private File accFile;
     private FileWriter accWriter;
-    private long lastUpdate = 0;
-    private static final int ACCELEROMETER_INTERVAL = 4000; // 4 seconds
+
+    private float[] acceleration = new float[3];
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,21 +119,21 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
 
         checkPermissions();
         initializeFiles();
-
-
+        setupPeriodicUpdates();
 
 
     }
 
     private void checkPermissions() {
-        // Verifica los permisos de ubicación y almacenamiento
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{
-                    android.Manifest.permission.ACCESS_FINE_LOCATION,
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.BODY_SENSORS
             }, LOCATION_PERMISSION_REQUEST_CODE);
         } else {
             startLocationUpdates();
@@ -147,62 +152,53 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
     public void onLocationChanged(@NonNull Location location) {
         latitude = location.getLatitude();
         longitude = location.getLongitude();
-        String locationText = "Lat: " + latitude + ", Lon: " + longitude;
-
-        saveLocationDataToCSV();
     }
 
-    private void saveLocationDataToCSV() {
+    private void saveDataToCSV(double latitude, double longitude, double height, float[] acceleration) {
         File externalFilesDir = getExternalFilesDir(null);
         if (externalFilesDir != null) {
-            File filePath = new File(externalFilesDir, "locationData");
-            if (!filePath.exists()) {
-                filePath.mkdirs();
+            // Guardar datos de ubicación y altura
+            File dataFilePath = new File(externalFilesDir, "locationData");
+            if (!dataFilePath.exists()) {
+                dataFilePath.mkdirs();
             }
-            String fileName = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + "_locationData.csv";
-            File file = new File(filePath, fileName);
-            if (file.exists()) {
-                try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                    if (reader.readLine() != null) {
-                        // Si ya hay datos válidos, no sobreescribir ni crear nuevo archivo
-                        return;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            String dataFileName = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + "_locationData.csv";
+            File dataFile = new File(dataFilePath, dataFileName);
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(dataFile, true))) {
+                writer.append(String.format(Locale.getDefault(), "%.6f,%.6f,%.2f\n", latitude, longitude, height));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            // Solo escribe si los valores no son nulos
-            if (latitude != null && longitude != null) {
-                try (FileWriter writer = new FileWriter(file, false)) { // false para no agregar, sino sobrescribir
-                    writer.append(String.format(Locale.getDefault(), "%.6f,%.6f\n", latitude, longitude));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            // Guardar datos de aceleración
+            File accFilePath = new File(externalFilesDir, "AccData");
+            if (!accFilePath.exists()) {
+                accFilePath.mkdirs();
             }
-        } else {
-            // Maneja el caso en que el directorio externo no está disponible
-            System.err.println("Error: External storage not available");
-        }
-    }
-
-    private void saveHeightDataToCSV(double height) {
-        File externalFilesDir = getExternalFilesDir(null);
-        if (externalFilesDir != null) {
-            File filePath = new File(externalFilesDir, "heightData");
-            if (!filePath.exists()) {
-                filePath.mkdirs();
-            }
-            String fileName = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + "_heightData.csv";
-            File file = new File(filePath, fileName);
-            try (FileWriter writer = new FileWriter(file, false)) { // false para sobrescribir
-                writer.append(String.format(Locale.getDefault(), "%.2f\n", height));
+            String accFileName = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + "_accData.csv";
+            File accFile = new File(accFilePath, accFileName);
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(accFile, true))) {
+                writer.append(String.format(Locale.getDefault(), "%.6f,%.6f,%.6f\n", acceleration[0], acceleration[1], acceleration[2]));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
             System.err.println("Error: External storage not available");
         }
+    }
+
+    private void setupPeriodicUpdates() {
+        handler = new Handler();
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                if (latitude != null && longitude != null && height != null) {
+                    saveDataToCSV(latitude, longitude, height, acceleration);
+                }
+                handler.postDelayed(this, 2000); // 2 segundos
+            }
+        };
+        handler.post(runnable);
     }
 
     private void initializeFiles() {
@@ -229,29 +225,12 @@ public class StartAct extends AppCompatActivity implements LocationListener, Sen
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_PRESSURE) {
-            if (!altitudeDisplayed) {
-                float pressure = event.values[0];
-                double height = calculateHeight(pressure, TEMPERATURE_KELVIN);
-
-                altitudeDisplayed = true;  // Mostrar y guardar la información de la altura solo una vez
-
-                saveHeightDataToCSV(height);
-            }
+            float pressure = event.values[0];
+            height = calculateHeight(pressure, TEMPERATURE_KELVIN);
         } else if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - lastUpdate >= ACCELEROMETER_INTERVAL) {
-                lastUpdate = currentTime;
-                float x = event.values[0];
-                float y = event.values[1];
-                float z = event.values[2];
-
-                try {
-                    accWriter.append(String.format(Locale.US, "%d,%.3f,%.3f,%.3f\n", currentTime, x, y, z));
-                    accWriter.flush();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            acceleration[0] = event.values[0];
+            acceleration[1] = event.values[1];
+            acceleration[2] = event.values[2];
         }
     }
 
