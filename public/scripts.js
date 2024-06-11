@@ -70,63 +70,24 @@ function processLocationData(data) {
             const lon = parseFloat(match[2].replace(',', '.'));
             const altitude = parseFloat(match[3]);
             if (!isNaN(lat) && !isNaN(lon) && !isNaN(altitude)) {
-                points.push({ lat, lon, altitude });
+                points.push([lat, lon]);
             }
         }
     });
 
     if (points.length > 0) {
-        const [point1, point2] = findFurthestPoints(points);
+        // Dibujar una línea que conecte todos los puntos
+        L.polyline(points, { color: 'blue' }).addTo(map);
 
-        if (point1 && point2) {
-            const linePoints = [point1, point2].map(point => [point.lat, point.lon]);
-            L.polyline(linePoints, { color: 'blue' }).addTo(map);
+        // Añadir un marcador para cada punto
+        points.forEach(point => {
+            const marker = L.marker(point).addTo(map);
+            marker.bindPopup(`<b>Latitud:</b> ${point[0]}, <b>Longitud:</b> ${point[1]}`);
+        });
 
-            [point1, point2].forEach(point => {
-                const marker = L.marker([point.lat, point.lon]).addTo(map);
-                marker.bindPopup(`<b>Latitud:</b> ${point.lat}, <b>Longitud:</b> ${point.lon}, <b>Altura:</b> ${point.altitude} metros`);
-            });
-
-            map.setView([point1.lat, point1.lon], 13); // Zoom al primer marcador
-        }
+        // Centrarse en el primer punto
+        map.setView(points[0], 13); // Zoom al primer marcador
     }
-}
-
-// Función para encontrar los dos puntos con la mayor distancia entre ellos
-function findFurthestPoints(points) {
-    let maxDistance = 0;
-    let point1 = null;
-    let point2 = null;
-
-    for (let i = 0; i < points.length; i++) {
-        for (let j = i + 1; j < points.length; j++) {
-            const distance = haversine(points[i].lat, points[i].lon, points[j].lat, points[j].lon);
-            if (distance > maxDistance) {
-                maxDistance = distance;
-                point1 = points[i];
-                point2 = points[j];
-            }
-        }
-    }
-
-    return [point1, point2];
-}
-
-// Función de Haversine para calcular la distancia entre dos puntos
-function haversine(lat1, lon1, lat2, lon2) {
-    function toRad(x) {
-        return x * Math.PI / 180;
-    }
-
-    const R = 6371; // Radio de la Tierra en km
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    return distance;
 }
 
 // Función para procesar los datos de HRV (Stress)
@@ -273,31 +234,6 @@ function createAccChart(accValues) {
     });
 }
 
-// Función para comprobar si la ubicación está dentro de algún círculo
-function checkProximity(location) {
-    let inProximity = false;
-    metroStations.forEach(station => {
-        const distance = map.distance([location.lat, location.lon], [station.lat, station.lon]);
-        if (distance <= 100) {
-            inProximity = true;
-        }
-    });
-    if (inProximity) {
-        showModal();
-    } else {
-        closeModal();
-    }
-}
-
-// Función para mostrar el modal de alerta
-function showModal() {
-    document.getElementById('alert-modal').style.display = 'block';
-}
-
-// Función para cerrar el modal de alerta
-function closeModal() {
-    document.getElementById('alert-modal').style.display = 'none';
-}
 
 // Función principal para cargar y mostrar los datos en el mapa y gráfico de líneas
 async function loadDataAndDisplay() {
