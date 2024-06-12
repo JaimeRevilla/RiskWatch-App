@@ -58,35 +58,77 @@ function fetchLatestCSV(directory, fileIdentifier) {
 }
 
 // Función para procesar los datos de ubicación y añadirlos al mapa
-function processLocationData(data) {
-    const regex = /(-?\d+,\d{6}),(-?\d+,\d{6}),(\d+)/;
-    const rows = data.trim().split('\n');
+function processLocationAndHRVData(locationData, hrvData) {
+    const locationRegex = /(-?\d+,\d{6}),(-?\d+,\d{6}),(\d+)/;
+    const rows = locationData.trim().split('\n');
     const points = [];
 
-    rows.forEach(row => {
-        const match = row.match(regex);
+    // Parsear los datos de HRV
+    const hrvValues = processHRVData(hrvData);
+
+    // Unir datos de ubicación y HRV
+    rows.forEach((row, index) => {
+        const match = row.match(locationRegex);
         if (match) {
             const lat = parseFloat(match[1].replace(',', '.'));
             const lon = parseFloat(match[2].replace(',', '.'));
             const altitude = parseFloat(match[3]);
+            const hrv = hrvValues ? hrvValues[index] : null;
             if (!isNaN(lat) && !isNaN(lon) && !isNaN(altitude)) {
-                points.push([lat, lon]);
+                points.push({ lat, lon, altitude, hrv });
             }
         }
     });
 
     if (points.length > 0) {
-        // Dibujar una línea que conecte todos los puntos
-        L.polyline(points, { color: 'blue' }).addTo(map);
+        const latlngs = points.map(point => [point.lat, point.lon]);
 
-        // Añadir un marcador para cada punto
-        points.forEach(point => {
-            const marker = L.marker(point).addTo(map);
-            marker.bindPopup(`<b>Latitud:</b> ${point[0]}, <b>Longitud:</b> ${point[1]}`);
+        // Dibujar una línea que conecte todos los puntos y cambiar el color basado en HRV
+        const coloredLatLngs = latlngs.map((latlng, index) => {
+            const point = points[index];
+            return {
+                latlng,
+                color: point.hrv > 115 ? 'red' : 'blue'
+            };
         });
 
+        coloredLatLngs.forEach((segment, index) => {
+            if (index < coloredLatLngs.length - 1) {
+                L.polyline([segment.latlng, coloredLatLngs[index + 1].latlng], { color: segment.color }).addTo(map);
+            }
+        });
+
+        // Añadir marcador solo para el primer y último punto
+        const firstPoint = points[0];
+        const lastPoint = points[points.length - 1];
+
+        if (firstPoint) {
+            const marker = L.marker([firstPoint.lat, firstPoint.lon]).addTo(map);
+            marker.bindPopup(`<b>Latitud:</b> ${firstPoint.lat}, <b>Longitud:</b> ${firstPoint.lon}, <b>Altura:</b> ${firstPoint.altitude} metros, <b>HRV:</b> ${firstPoint.hrv}`);
+        }
+
+        if (lastPoint) {
+            const marker = L.marker([lastPoint.lat, lastPoint.lon]).addTo(map);
+            marker.bindPopup(`<b>Latitud:</b> ${lastPoint.lat}, <b>Longitud:</b> ${lastPoint.lon}, <b>Altura:</b> ${lastPoint.altitude} metros, <b>HRV:</b> ${lastPoint.hrv}`);
+        }
+
         // Centrarse en el primer punto
-        map.setView(points[0], 13); // Zoom al primer marcador
+        map.setView([firstPoint.lat, firstPoint.lon], 13); // Zoom al primer marcador
+
+        // Añadir evento a la polilínea para mostrar información de los puntos al hacer clic
+        map.eachLayer(layer => {
+            if (layer instanceof L.Polyline) {
+                layer.on('click', function(e) {
+                    const nearestPoint = findNearestPoint(e.latlng, points);
+                    if (nearestPoint) {
+                        L.popup()
+                            .setLatLng([nearestPoint.lat, nearestPoint.lon])
+                            .setContent(`<b>Latitud:</b> ${nearestPoint.lat}, <b>Longitud:</b> ${nearestPoint.lon}, <b>Altura:</b> ${nearestPoint.altitude} metros, <b>HRV:</b> ${nearestPoint.hrv}`)
+                            .openOn(map);
+                    }
+                });
+            }
+        });
     }
 }
 
@@ -138,11 +180,11 @@ function createHRVChart(hrvValues) {
         datasets: [{
             label: 'Variabilidad de la Frecuencia Cardíaca (HRV)',
             data: hrvValues,
-            borderColor: hrvValues.map(value => value > 110 ? 'rgba(255, 0, 0, 1)' : 'rgba(75, 192, 192, 1)'),
+            borderColor: hrvValues.map(value => value > 115 ? 'rgba(255, 0, 0, 1)' : 'rgba(75, 192, 192, 1)'),
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             borderWidth: 2,
-            pointBackgroundColor: hrvValues.map(value => value > 110 ? 'rgba(255, 0, 0, 1)' : 'rgba(75, 192, 192, 1)'),
-            pointBorderColor: hrvValues.map(value => value > 110 ? 'rgba(255, 0, 0, 1)' : 'rgba(75, 192, 192, 1)'),
+            pointBackgroundColor: hrvValues.map(value => value > 115 ? 'rgba(255, 0, 0, 1)' : 'rgba(75, 192, 192, 1)'),
+            pointBorderColor: hrvValues.map(value => value > 115 ? 'rgba(255, 0, 0, 1)' : 'rgba(75, 192, 192, 1)'),
             pointRadius: 5,
             fill: true,
             tension: 0.4
@@ -169,13 +211,13 @@ function createHRVChart(hrvValues) {
                 annotations: {
                     line1: {
                         type: 'line',
-                        yMin: 110,
-                        yMax: 110,
+                        yMin: 115,
+                        yMax: 115,
                         borderColor: 'rgb(255, 99, 132)',
                         borderWidth: 2,
                         label: {
                             enabled: true,
-                            content: 'Alerta HRV > 110',
+                            content: 'Alerta HRV > 115',
                             position: 'end'
                         }
                     }
@@ -234,22 +276,42 @@ function createAccChart(accValues) {
     });
 }
 
+// Función para comprobar si la ubicación está dentro de algún círculo
+function checkProximity(location) {
+    let inProximity = false;
+    metroStations.forEach(station => {
+        const distance = map.distance([location.lat, location.lon], [station.lat, station.lon]);
+        if (distance <= 100) {
+            inProximity = true;
+        }
+    });
+    if (inProximity) {
+        showModal();
+    } else {
+        closeModal();
+    }
+}
+
+// Función para mostrar el modal de alerta
+function showModal() {
+    document.getElementById('alert-modal').style.display = 'block';
+}
+
+// Función para cerrar el modal de alerta
+function closeModal() {
+    document.getElementById('alert-modal').style.display = 'none';
+}
 
 // Función principal para cargar y mostrar los datos en el mapa y gráfico de líneas
 async function loadDataAndDisplay() {
     try {
         // Obtener datos de ubicación
         const locationData = await fetchLatestCSV('Datos_An', '_locationData.csv');
-        processLocationData(locationData);
-
         // Obtener datos de HRV
         const hrvData = await fetchLatestCSV('Datos_An', '_data_stress.csv');
-        const hrvValues = processHRVData(hrvData);
-        if (hrvValues) {
-            createHRVChart(hrvValues);
-        }
+        processLocationAndHRVData(locationData, hrvData);
 
-        // Obtener datos de aceleración
+        // Obtener y procesar datos de aceleración
         const accData = await fetchLatestCSV('Datos_An', '_accData.csv');
         const accValues = processAccData(accData);
         if (accValues) {
@@ -274,6 +336,22 @@ function checkRunningStatus(accValues) {
         statusIndicator.textContent = 'No Corriendo';
         statusIndicator.style.color = 'green';
     }
+}
+
+// Función para encontrar el punto más cercano en la polilínea
+function findNearestPoint(latlng, points) {
+    let nearestPoint = null;
+    let minDistance = Infinity;
+
+    points.forEach(point => {
+        const distance = map.distance(latlng, [point.lat, point.lon]);
+        if (distance < minDistance) {
+            minDistance = distance;
+            nearestPoint = point;
+        }
+    });
+
+    return nearestPoint;
 }
 
 // Ejecutar la función principal
