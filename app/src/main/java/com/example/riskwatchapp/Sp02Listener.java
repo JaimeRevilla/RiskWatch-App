@@ -28,10 +28,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-public class SpO2Listener extends BaseListener {
+public class Sp02Listener extends BaseListener {
     private final static String APP_TAG = "MainActivity";
 
-    SpO2Listener() {
+    Sp02Listener() {
         final HealthTracker.TrackerEventListener trackerEventListener = new HealthTracker.TrackerEventListener() {
             @Override
             public void onDataReceived(@NonNull List<DataPoint> list) {
@@ -66,7 +66,7 @@ public class SpO2Listener extends BaseListener {
 
         final int status = dataPoint.getValue(ValueKey.SpO2Set.STATUS);
         int spo2Value = 0;
-        if (status == SpO2Status.MEASUREMENT_COMPLETED){
+        if (status == Sp02Status.MEASUREMENT_COMPLETED){
             spo2Value = dataPoint.getValue(ValueKey.SpO2Set.SPO2);
             TrackerDataNotifier.getInstance().notifySpO2TrackerObservers(status, spo2Value, timestamp);
        // Log.i(APP_TAG, dataPoint.toString());

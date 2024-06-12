@@ -16,29 +16,18 @@ package com.example.riskwatchapp;
  */
 
 
-import static android.content.pm.PackageManager.PERMISSION_DENIED;
-
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
-import android.location.LocationManager;
 import android.os.Bundle;
 
 import android.os.PowerManager;
 
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.MenuItem;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
@@ -51,41 +40,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import android.Manifest;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Bundle;
-import android.widget.Button;
-import android.widget.TextView;
-import android.view.View;  // Asegúrate de importar View
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class ActPrincp extends FragmentActivity {
 
@@ -94,9 +51,9 @@ public class ActPrincp extends FragmentActivity {
     public boolean isMeasurementRunning = false;
     private ConnectionManag connectionManager;
     private HRVListener heartRateListener = null;
-    private SpO2Listener spO2Listener = null;
+    private Sp02Listener spO2Listener = null;
 
-    private int previousStatus = SpO2Status.INITIAL_STATUS;
+    private int previousStatus = Sp02Status.INITIAL_STATUS;
 
     public String hr_value = "";
 
@@ -269,7 +226,7 @@ public class ActPrincp extends FragmentActivity {
             spO2Listener.stopTracker();
         }
 
-        previousStatus = SpO2Status.INITIAL_STATUS;
+        previousStatus = Sp02Status.INITIAL_STATUS;
         Log.i(APP_TAG, "SP02 - START TRACKER");
         connectionManager.initSpO2(spO2Listener);
 
@@ -340,17 +297,17 @@ public class ActPrincp extends FragmentActivity {
             Log.i(APP_TAG, "Spo2 recibido: ");
             previousStatus = status;
             switch (status) {
-                case SpO2Status.CALCULATING:
+                case Sp02Status.CALCULATING:
                     Log.i(APP_TAG, "SPO2 - Calculating measurement");
                     break;
-                case SpO2Status.DEVICE_MOVING:
+                case Sp02Status.DEVICE_MOVING:
                     Log.i(APP_TAG, "SPO2 Device is moving");
                     break;
-                case SpO2Status.LOW_SIGNAL:
+                case Sp02Status.LOW_SIGNAL:
                     Log.i(APP_TAG, "SPO2 Low signal quality");
                     stop_sp02tracker();
                     break;
-                case SpO2Status.MEASUREMENT_COMPLETED:
+                case Sp02Status.MEASUREMENT_COMPLETED:
                     Log.i(APP_TAG, "*********** SPO2 Measurement completed *******************");
                     String spo2_value = String.valueOf(spO2Value);
                     Log.i(APP_TAG, "SPO2 value " + spo2_value);
@@ -398,7 +355,7 @@ public class ActPrincp extends FragmentActivity {
             TrackerDataNotifier.getInstance().addObserver(trackerDataObserver);
 
             heartRateListener = new HRVListener();
-            spO2Listener = new SpO2Listener();
+            spO2Listener = new Sp02Listener();
 
             connectionManager.initHeartRate(heartRateListener);
             connectionManager.initSpO2(spO2Listener);

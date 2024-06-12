@@ -16,7 +16,7 @@
 
 package com.example.riskwatchapp;
 
-public class SpO2Status {
+public class Sp02Status {
     public static final int LOW_SIGNAL = -5;
     public static final int DEVICE_MOVING = -4;
     public static final int INITIAL_STATUS = -1;

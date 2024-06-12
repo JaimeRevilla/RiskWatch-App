@@ -44,6 +44,9 @@ public class BaseListener {
         isHandlerRunning = handlerRunning;
     }
 
+    public boolean isHandlerRunning() {
+        return isHandlerRunning;
+    }
     public void setTrackerEventListener(HealthTracker.TrackerEventListener tracker) {
         trackerEventListener = tracker;
     }

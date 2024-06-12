@@ -75,7 +75,7 @@ public class ConnectionManag {
             healthTrackingService.disconnectService();
     }
 
-    public void initSpO2(SpO2Listener spO2Listener) {
+    public void initSpO2(Sp02Listener spO2Listener) {
         final HealthTracker healthTracker;
         healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.SPO2);
         spO2Listener.setHealthTracker(healthTracker);
