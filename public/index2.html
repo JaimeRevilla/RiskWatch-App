@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Formulario de Retroalimentación</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Retroalimentación de la Aplicación</h1>
+        <p>Por favor, complete el formulario a continuación</p>
+    </header>
+
+    <div id="main-container">
+        <form id="feedback-form">
+            <div>
+                <label for="first-name">Nombre:</label>
+                <input type="text" id="first-name" name="first-name" required>
+            </div>
+            <div>
+                <label for="last-name">Apellido:</label>
+                <input type="text" id="last-name" name="last-name" required>
+            </div>
+            <div>
+                <label for="usability">Facilidad de uso (1-10):</label>
+                <input type="number" id="usability" name="usability" min="1" max="10" required>
+            </div>
+            <div>
+                <label for="comments">Aportaciones a mayores:</label>
+                <textarea id="comments" name="comments"></textarea>
+            </div>
+            <div>
+                <button type="submit">Enviar</button>
+            </div>
+        </form>
+    </div>
+
+    <footer>
+        <p>Desarrollado por Jaime Revilla</p>
+    </footer>
+
+    <script>
+        // Configura Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIJorV_JDC03nbKYBR7wkeKjBJLcHcxo",
+            authDomain: "riskwatchapp-5ec8b.firebaseapp.com",
+            databaseURL: "https://riskwatchapp-5ec8b-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "riskwatchapp-5ec8b",
+            storageBucket: "riskwatchapp-5ec8b.appspot.com",
+            messagingSenderId: "162678165225",
+            appId: "1:162678165225:web:3c28dd0d756ade7742a78"
+        };
+
+        // Inicializa Firebase
+        firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+        const storageRef = storage.ref();
+
+        document.getElementById('feedback-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const usability = document.getElementById('usability').value;
+            const comments = document.getElementById('comments').value;
+
+            const feedbackData = {
+                firstName,
+                lastName,
+                usability,
+                comments
+            };
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const fileName = `feedback_${timestamp}_${firstName}_${lastName}.json`;
+
+            const blob = new Blob([JSON.stringify(feedbackData, null, 2)], { type: 'application/json' });
+
+            try {
+                await storageRef.child(`Retroalimentaciones/${fileName}`).put(blob);
+                alert('Retroalimentación enviada con éxito.');
+                document.getElementById('feedback-form').reset();
+            } catch (error) {
+                console.error('Error al enviar la retroalimentación:', error);
+                alert('Error al enviar la retroalimentación.');
+            }
+        });
+    </script>
+</body>
+</html>
