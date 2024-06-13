@@ -58,7 +58,7 @@ function fetchLatestCSV(directory, fileIdentifier) {
 }
 
 // Función para procesar los datos de ubicación y añadirlos al mapa
-function processLocationAndHRVData(locationData, hrvData) {
+function processLocationAndHRVData(locationData, hrvData, showAltitudeOnly = false, showHRVOnly = false) {
     const locationRegex = /(-?\d+,\d{6}),(-?\d+,\d{6}),(\d+)/;
     const rows = locationData.trim().split('\n');
     const points = [];
@@ -83,20 +83,96 @@ function processLocationAndHRVData(locationData, hrvData) {
     if (points.length > 0) {
         const latlngs = points.map(point => [point.lat, point.lon]);
 
-        // Dibujar una línea que conecte todos los puntos y cambiar el color basado en HRV
-        const coloredLatLngs = latlngs.map((latlng, index) => {
-            const point = points[index];
-            return {
-                latlng,
-                color: point.hrv > 115 ? 'red' : 'blue'
-            };
-        });
+        if (showAltitudeOnly) {
+            // Dibujar una línea basada solo en la altitud y cambiar el color si la altura es menor de 685
+            const altitudeLatLngs = latlngs.map((latlng, index) => {
+                const point = points[index];
+                return { 
+                    latlng, 
+                    color: point.altitude < 685 ? 'red' : 'blue' 
+                };
+            });
 
-        coloredLatLngs.forEach((segment, index) => {
-            if (index < coloredLatLngs.length - 1) {
-                L.polyline([segment.latlng, coloredLatLngs[index + 1].latlng], { color: segment.color }).addTo(map);
-            }
-        });
+            altitudeLatLngs.forEach((segment, index) => {
+                if (index < altitudeLatLngs.length - 1) {
+                    L.polyline([segment.latlng, altitudeLatLngs[index + 1].latlng], { color: segment.color }).addTo(map);
+                }
+            });
+
+            // Añadir evento a la polilínea para mostrar solo la altitud
+            map.eachLayer(layer => {
+                if (layer instanceof L.Polyline) {
+                    layer.on('click', function(e) {
+                        const nearestPoint = findNearestPoint(e.latlng, points);
+                        if (nearestPoint) {
+                            L.popup()
+                                .setLatLng([nearestPoint.lat, nearestPoint.lon])
+                                .setContent(`<b>Altura:</b> ${nearestPoint.altitude} metros`)
+                                .openOn(map);
+                        }
+                    });
+                }
+            });
+        } else if (showHRVOnly) {
+            // Dibujar una línea basada solo en el HRV y cambiar el color si el HRV es mayor de 115
+            const hrvLatLngs = latlngs.map((latlng, index) => {
+                const point = points[index];
+                return { 
+                    latlng, 
+                    color: point.hrv > 115 ? 'red' : 'blue' 
+                };
+            });
+
+            hrvLatLngs.forEach((segment, index) => {
+                if (index < hrvLatLngs.length - 1) {
+                    L.polyline([segment.latlng, hrvLatLngs[index + 1].latlng], { color: segment.color }).addTo(map);
+                }
+            });
+
+            // Añadir evento a la polilínea para mostrar solo el HRV
+            map.eachLayer(layer => {
+                if (layer instanceof L.Polyline) {
+                    layer.on('click', function(e) {
+                        const nearestPoint = findNearestPoint(e.latlng, points);
+                        if (nearestPoint) {
+                            L.popup()
+                                .setLatLng([nearestPoint.lat, nearestPoint.lon])
+                                .setContent(`<b>HRV:</b> ${nearestPoint.hrv}`)
+                                .openOn(map);
+                        }
+                    });
+                }
+            });
+        } else {
+            // Dibujar una línea que conecte todos los puntos sin cambiar el color basado en HRV o altitud
+            const defaultLatLngs = latlngs.map((latlng) => {
+                return { 
+                    latlng, 
+                    color: 'blue' 
+                };
+            });
+
+            defaultLatLngs.forEach((segment, index) => {
+                if (index < defaultLatLngs.length - 1) {
+                    L.polyline([segment.latlng, defaultLatLngs[index + 1].latlng], { color: segment.color }).addTo(map);
+                }
+            });
+
+            // Añadir evento a la polilínea para mostrar solo latitud y longitud
+            map.eachLayer(layer => {
+                if (layer instanceof L.Polyline) {
+                    layer.on('click', function(e) {
+                        const nearestPoint = findNearestPoint(e.latlng, points);
+                        if (nearestPoint) {
+                            L.popup()
+                                .setLatLng([nearestPoint.lat, nearestPoint.lon])
+                                .setContent(`<b>Latitud:</b> ${nearestPoint.lat}, <b>Longitud:</b> ${nearestPoint.lon}`)
+                                .openOn(map);
+                        }
+                    });
+                }
+            });
+        }
 
         // Añadir marcador solo para el primer y último punto
         const firstPoint = points[0];
@@ -104,31 +180,16 @@ function processLocationAndHRVData(locationData, hrvData) {
 
         if (firstPoint) {
             const marker = L.marker([firstPoint.lat, firstPoint.lon]).addTo(map);
-            marker.bindPopup(`<b>Latitud:</b> ${firstPoint.lat}, <b>Longitud:</b> ${firstPoint.lon}, <b>Altura:</b> ${firstPoint.altitude} metros, <b>HRV:</b> ${firstPoint.hrv}`);
+            marker.bindPopup(`<b>Latitud:</b> ${firstPoint.lat}, <b>Longitud:</b> ${firstPoint.lon}`);
         }
 
         if (lastPoint) {
             const marker = L.marker([lastPoint.lat, lastPoint.lon]).addTo(map);
-            marker.bindPopup(`<b>Latitud:</b> ${lastPoint.lat}, <b>Longitud:</b> ${lastPoint.lon}, <b>Altura:</b> ${lastPoint.altitude} metros, <b>HRV:</b> ${lastPoint.hrv}`);
+            marker.bindPopup(`<b>Latitud:</b> ${lastPoint.lat}, <b>Longitud:</b> ${lastPoint.lon}`);
         }
 
         // Centrarse en el primer punto
         map.setView([firstPoint.lat, firstPoint.lon], 13); // Zoom al primer marcador
-
-        // Añadir evento a la polilínea para mostrar información de los puntos al hacer clic
-        map.eachLayer(layer => {
-            if (layer instanceof L.Polyline) {
-                layer.on('click', function(e) {
-                    const nearestPoint = findNearestPoint(e.latlng, points);
-                    if (nearestPoint) {
-                        L.popup()
-                            .setLatLng([nearestPoint.lat, nearestPoint.lon])
-                            .setContent(`<b>Latitud:</b> ${nearestPoint.lat}, <b>Longitud:</b> ${nearestPoint.lon}, <b>Altura:</b> ${nearestPoint.altitude} metros, <b>HRV:</b> ${nearestPoint.hrv}`)
-                            .openOn(map);
-                    }
-                });
-            }
-        });
     }
 }
 
@@ -309,7 +370,11 @@ async function loadDataAndDisplay() {
         const locationData = await fetchLatestCSV('Datos_An', '_locationData.csv');
         // Obtener datos de HRV
         const hrvData = await fetchLatestCSV('Datos_An', '_data_stress.csv');
-        processLocationAndHRVData(locationData, hrvData);
+        
+        const showAltitudeOnly = document.getElementById('altitude-only').checked;
+        const showHRVOnly = document.getElementById('hrv-only').checked;
+        
+        processLocationAndHRVData(locationData, hrvData, showAltitudeOnly, showHRVOnly);
 
         // Obtener y procesar datos de aceleración
         const accData = await fetchLatestCSV('Datos_An', '_accData.csv');
@@ -356,3 +421,7 @@ function findNearestPoint(latlng, points) {
 
 // Ejecutar la función principal
 loadDataAndDisplay();
+
+// Añadir evento a las casillas de verificación
+document.getElementById('altitude-only').addEventListener('change', loadDataAndDisplay);
+document.getElementById('hrv-only').addEventListener('change', loadDataAndDisplay);
