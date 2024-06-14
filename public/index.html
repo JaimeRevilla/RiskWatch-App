@@ -30,7 +30,14 @@
             </label>
         </div>
         <div id="map-container">
-            <div id="map" style="height: 500px;"></div>
+            <div id="map"></div>
+            <div id="date-selector-container">
+                <label for="date-selector">Seleccionar fechas:</label>
+                <select id="date-selector" multiple>
+                    <!-- Las opciones se cargarán dinámicamente -->
+                </select>
+                <button id="load-data-btn">Cargar Datos</button>
+            </div>
         </div>
         <div id="charts-container">
             <div class="chart-box">
