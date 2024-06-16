@@ -71,18 +71,20 @@ async function populateDateSelector() {
 populateDateSelector();
 
 // Función para obtener la URL de descarga del archivo CSV más reciente en un directorio específico
-function fetchCSVFiles(directory, fileIdentifiers) {
-    return storageRef.child(directory).listAll().then(function(result) {
-        const csvFiles = result.items.filter(item => fileIdentifiers.some(identifier => item.name.includes(identifier)));
-        if (csvFiles.length === 0) {
-            throw new Error(`No se encontraron archivos CSV con los identificadores: ${fileIdentifiers}`);
-        }
+async function fetchCSVFiles(directory, fileIdentifiers) {
+    const directoryRef = storageRef.child(directory);
+    const result = await directoryRef.listAll();
+    const csvFiles = result.items.filter(item => fileIdentifiers.some(identifier => item.name.includes(identifier)));
 
-        // Ordenar los archivos por nombre (asumiendo que los nombres de archivo contienen fechas y se ordenan lexicográficamente)
-        csvFiles.sort((a, b) => a.name.localeCompare(b.name));
-        const fetchPromises = csvFiles.map(file => file.getDownloadURL().then(url => fetch(url).then(response => response.text())));
-        return Promise.all(fetchPromises);
-    });
+    if (csvFiles.length === 0) {
+        throw new Error(`No se encontraron archivos CSV con los identificadores: ${fileIdentifiers}`);
+    }
+
+    // Ordenar los archivos por nombre (asumiendo que los nombres de archivo contienen fechas y se ordenan lexicográficamente)
+    csvFiles.sort((a, b) => a.name.localeCompare(b.name));
+
+    const fetchPromises = csvFiles.map(file => file.getDownloadURL().then(url => fetch(url).then(response => response.text())));
+    return Promise.all(fetchPromises);
 }
 
 // Función para eliminar las capas anteriores del mapa
@@ -101,7 +103,7 @@ function clearMap() {
 }
 
 // Función para procesar los datos de ubicación y añadirlos al mapa
-function processLocationAndHRVData(locationDataArray, spO2DataArray, showAltitudeOnly = false, showHRVOnly = false, showHeatmap = false) {
+function processLocationAndHRVData(locationDataArray, hrvDataArray, showAltitudeOnly = false, showHRVOnly = false, showHeatmap = false) {
     clearMap();
     
     const locationRegex = /(-?\d+,\d{6}),(-?\d+,\d{6}),(\d+)/;
@@ -109,8 +111,8 @@ function processLocationAndHRVData(locationDataArray, spO2DataArray, showAltitud
 
     locationDataArray.forEach((locationData, index) => {
         const rows = locationData.trim().split('\n');
-        const spO2Data = spO2DataArray[index];
-        const spO2Values = processSpO2Data(spO2Data);
+        const hrvData = hrvDataArray[index];
+        const hrvValues = processHRVData(hrvData);
 
         rows.forEach((row, rowIndex) => {
             const match = row.match(locationRegex);
@@ -118,9 +120,9 @@ function processLocationAndHRVData(locationDataArray, spO2DataArray, showAltitud
                 const lat = parseFloat(match[1].replace(',', '.'));
                 const lon = parseFloat(match[2].replace(',', '.'));
                 const altitude = parseFloat(match[3]);
-                const spO2 = spO2Values ? spO2Values[rowIndex] : null;
+                const hrv = hrvValues ? hrvValues[rowIndex] : null;
                 if (!isNaN(lat) && !isNaN(lon) && !isNaN(altitude)) {
-                    points.push({ lat, lon, altitude, spO2 });
+                    points.push({ lat, lon, altitude, hrv });
                 }
             }
         });
@@ -131,7 +133,7 @@ function processLocationAndHRVData(locationDataArray, spO2DataArray, showAltitud
 
         if (showHeatmap) {
             const heatData = points.map(point => {
-                let intensity = point.spO2 > 115 ? 1 : point.spO2 / 115;
+                let intensity = point.hrv > 115 ? 1 : point.hrv / 115;
                 return [point.lat, point.lon, intensity];
             });
             heatLayer = L.heatLayer(heatData, { radius: 25 }).addTo(map);
@@ -166,36 +168,36 @@ function processLocationAndHRVData(locationDataArray, spO2DataArray, showAltitud
                     });
                 });
             } else if (showHRVOnly) {
-                // Dibujar una línea basada solo en el SpO2 y cambiar el color si el SpO2 es mayor de 115
-                const spO2LatLngs = latlngs.map((latlng, index) => {
+                // Dibujar una línea basada solo en el HRV y cambiar el color si el HRV es mayor de 115
+                const hrvLatLngs = latlngs.map((latlng, index) => {
                     const point = points[index];
                     return { 
                         latlng, 
-                        color: point.spO2 > 115 ? 'red' : 'blue' 
+                        color: point.hrv > 115 ? 'red' : 'blue' 
                     };
                 });
 
-                spO2LatLngs.forEach((segment, index) => {
-                    if (index < spO2LatLngs.length - 1) {
-                        const polyline = L.polyline([segment.latlng, spO2LatLngs[index + 1].latlng], { color: segment.color }).addTo(map);
+                hrvLatLngs.forEach((segment, index) => {
+                    if (index < hrvLatLngs.length - 1) {
+                        const polyline = L.polyline([segment.latlng, hrvLatLngs[index + 1].latlng], { color: segment.color }).addTo(map);
                         polylines.push(polyline);
                     }
                 });
 
-                // Añadir evento a la polilínea para mostrar solo el SpO2
+                // Añadir evento a la polilínea para mostrar solo el HRV
                 polylines.forEach(polyline => {
                     polyline.on('click', function(e) {
                         const nearestPoint = findNearestPoint(e.latlng, points);
                         if (nearestPoint) {
                             L.popup()
                                 .setLatLng([nearestPoint.lat, nearestPoint.lon])
-                                .setContent(`<b>SpO2:</b> ${nearestPoint.spO2}`)
+                                .setContent(`<b>HRV:</b> ${nearestPoint.hrv}`)
                                 .openOn(map);
                         }
                     });
                 });
             } else {
-                // Dibujar una línea que conecte todos los puntos sin cambiar el color basado en SpO2 o altitud
+                // Dibujar una línea que conecte todos los puntos sin cambiar el color basado en HRV o altitud
                 const defaultLatLngs = latlngs.map((latlng) => {
                     return { 
                         latlng, 
@@ -244,6 +246,24 @@ function processLocationAndHRVData(locationDataArray, spO2DataArray, showAltitud
             map.setView([firstPoint.lat, firstPoint.lon], 13); // Zoom al primer marcador
         }
     }
+}
+
+// Función para procesar los datos de HRV (Stress)
+function processHRVData(data) {
+    const rows = data.trim().split('\n');
+    const hrvValues = [];
+
+    rows.forEach(row => {
+        const columns = row.split(',');
+        if (columns.length > 1) {
+            const hrv = parseFloat(columns[1]);
+            if (hrv !== 0 && !isNaN(hrv)) {
+                hrvValues.push(hrv);
+            }
+        }
+    });
+
+    return hrvValues.length > 0 ? hrvValues : null;
 }
 
 // Función para procesar los datos de SpO2
@@ -416,15 +436,19 @@ async function loadDataAndDisplay() {
         const locationDataPromises = selectedDates.map(date => fetchCSVFiles('Datos_An', [`${date}_locationData.csv`]));
         const locationDataArray = await Promise.all(locationDataPromises);
 
+        // Obtener datos de HRV
+        const hrvDataPromises = selectedDates.map(date => fetchCSVFiles('Datos_An', [`${date}_data_stress.csv`]));
+        const hrvDataArray = await Promise.all(hrvDataPromises);
+
         // Obtener datos de SpO2
-        const spO2DataPromises = selectedDates.map(date => fetchCSVFiles('Datos_An', [`${date}_data_Sp02.csv`]));
+        const spO2DataPromises = selectedDates.map(date => fetchCSVFiles('Datos_An', [`${date}_data_spo2.csv`]));
         const spO2DataArray = await Promise.all(spO2DataPromises);
 
         const showAltitudeOnly = document.getElementById('altitude-only').checked;
         const showHRVOnly = document.getElementById('hrv-only').checked;
         const showHeatmap = document.getElementById('heatmap').checked;
         
-        processLocationAndHRVData(locationDataArray.flat(), spO2DataArray.flat(), showAltitudeOnly, showHRVOnly, showHeatmap);
+        processLocationAndHRVData(locationDataArray.flat(), hrvDataArray.flat(), showAltitudeOnly, showHRVOnly, showHeatmap);
 
         // Obtener y procesar datos de aceleración
         const accDataPromises = selectedDates.map(date => fetchCSVFiles('Datos_An', [`${date}_accData.csv`]));
@@ -438,10 +462,11 @@ async function loadDataAndDisplay() {
             accChart = null; // Destruir el gráfico si no hay datos
         }
 
-        // Procesar y mostrar datos de SpO2 en el gráfico
+        // Procesar y mostrar datos de HRV y SpO2 en el gráfico
+        const hrvValues = hrvDataArray.flat().map(data => processHRVData(data)).flat();
         const spO2Values = spO2DataArray.flat().map(data => processSpO2Data(data)).flat();
-        if (spO2Values.length > 0) {
-            createSpO2Chart(spO2Values);
+        if (hrvValues.length > 0 || spO2Values.length > 0) {
+            createSpO2AndHRVChart(spO2Values, hrvValues);
         } else if (hrvChart) {
             hrvChart.destroy();
             hrvChart = null; // Destruir el gráfico si no hay datos
@@ -480,6 +505,82 @@ function findNearestPoint(latlng, points) {
     });
 
     return nearestPoint;
+}
+
+function createSpO2AndHRVChart(spO2Values, hrvValues) {
+    if (hrvChart) {
+        hrvChart.destroy(); // Destruir el gráfico anterior si existe
+    }
+
+    const ctx = document.getElementById('hrv-chart').getContext('2d');
+    const labels = Array.from({ length: Math.max(spO2Values.length, hrvValues.length) }, (_, i) => i + 1);
+    const data = {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Saturación de Oxígeno en Sangre (SpO2)',
+                data: spO2Values,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                pointBorderColor: 'rgba(75, 192, 192, 1)',
+                pointRadius: 5,
+                fill: true,
+                tension: 0.4,
+                yAxisID: 'y',
+            },
+            {
+                label: 'Variabilidad de la Frecuencia Cardíaca (HRV)',
+                data: hrvValues,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                pointBorderColor: 'rgba(255, 99, 132, 1)',
+                pointRadius: 5,
+                fill: true,
+                tension: 0.4,
+                yAxisID: 'y1',
+            }
+        ]
+    };
+
+    const options = {
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Tiempo'
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'SpO2',
+                    color: 'rgba(75, 192, 192, 1)',
+                },
+                position: 'left',
+            },
+            y1: {
+                title: {
+                    display: true,
+                    text: 'HRV',
+                    color: 'rgba(255, 99, 132, 1)',
+                },
+                position: 'right',
+                grid: {
+                    drawOnChartArea: false,
+                }
+            }
+        }
+    };
+
+    hrvChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: options
+    });
 }
 
 // Ejecutar la función principal
