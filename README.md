@@ -1,6 +1,6 @@
 # RiskWatchApp Web
 
-Este proyecto permite visualizar los datos de ubicación, HRV, SpO2 y aceleración recogidos por un smartwatch y almacenados en Firebase. La visualización incluye un mapa interactivo y gráficos generados con Chart.js.
+Este proyecto permite visualizar los datos de ubicación, HRV, SpO2, aceleración y Estrés recogidos por un smartwatch y almacenados en Firebase. La visualización incluye un mapa interactivo y gráficos permitiendo identificar situaciones de estrés para usuarios vulnerables de la vía, tales como peatones, ciclistas o usuarios de vehículos de movilidad personal.
 
 ## Requisitos
 
@@ -38,16 +38,16 @@ firebase init
 ```
 Selecciona Hosting y sigue las instrucciones para configurar el proyecto. Usa build como el directorio público.
 ### 4. Configurar Firebase
-Copia la configuración de Firebase desde tu proyecto en la consola de Firebase y reemplaza la configuración en scripts.js:
+Copia la configuración de Firebase de el proyecto en la consola de Firebase y reemplaza la configuración en scripts.js:
 ```bash
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    databaseURL: "YOUR_DATABASE_URL",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyDIJorV_JDC03nbKYBR7wkeKjBJLcHcxo",
+    authDomain: "riskwatchapp-5ec8b.firebaseapp.com",
+    databaseURL: "https://riskwatchapp-5ec8b-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "riskwatchapp-5ec8b",
+    storageBucket: "riskwatchapp-5ec8b.appspot.com",
+    messagingSenderId: "162678165225",
+    appId: "1:162678165225:web:3c28dd0d756ade7742a78"
 };
 ```
 ### 5. Configurar CORS en Google Cloud
