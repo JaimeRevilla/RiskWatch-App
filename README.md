@@ -1,6 +1,6 @@
 # RiskWatchApp Web
 
-Este proyecto permite visualizar los datos de ubicación, HRV, SpO2, aceleración y Estrés recogidos por un smartwatch y almacenados en Firebase. La visualización incluye un mapa interactivo y gráficos permitiendo identificar situaciones de estrés para usuarios vulnerables de la vía, tales como peatones, ciclistas o usuarios de vehículos de movilidad personal.
+Este proyecto permite visualizar los datos de ubicación, HRV, SpO2, aceleración y Estrés recogidos por un smartwatch y almacenados en Firebase. La visualización incluye un mapa interactivo y gráficos permitiendo identificar situaciones de estrés para usuarios vulnerables de la vía, tales como peatones, ciclistas o usuarios de vehículos de movilidad personal. A su vez permite el envio de retroalimentaciones para su mejora.
 
 ## Requisitos
 
@@ -80,3 +80,7 @@ Asegúrate de tener un archivo cors.json en tu directorio de trabajo con el sigu
 ```bash
 firebase deploy
 ```
+
+### Página web 
+![image](https://github.com/JaimeRevilla/RiskWatch-App/assets/90686026/f91df491-aeed-42c3-a9e3-158b4e8e70dc)
+
