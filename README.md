@@ -38,7 +38,7 @@ firebase init
 ```
 Selecciona Hosting y sigue las instrucciones para configurar el proyecto. Usa build como el directorio público.
 ### 4. Configurar Firebase
-Copia la configuración de Firebase de el proyecto en la consola de Firebase y reemplaza la configuración en scripts.js:
+Copia la configuración de Firebase del proyecto en la consola de Firebase y reemplaza la configuración en scripts.js:
 ```bash
 const firebaseConfig = {
     apiKey: "AIzaSyDIJorV_JDC03nbKYBR7wkeKjBJLcHcxo",
