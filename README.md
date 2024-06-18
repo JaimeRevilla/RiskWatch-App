@@ -82,5 +82,6 @@ firebase deploy
 ```
 
 ### Página web 
-![image](https://github.com/JaimeRevilla/RiskWatch-App/assets/90686026/f91df491-aeed-42c3-a9e3-158b4e8e70dc)
+![image](https://github.com/JaimeRevilla/RiskWatch-App/assets/90686026/7eb80d5d-8564-48de-a941-5158fd1f5419)
+
 
